@@ -59,33 +59,35 @@ void server::handle_recv(client& cl, span<unsigned char> data) {
 	proto::reader reader(data);
 
 	try {
-		auto id = reader.read<int32_t>();
+		while (!reader.ends()) {
+			auto id = reader.read<int32_t>();
 
-		switch (id) {
-			case proto::MESSAGE_CONNECT: {
-				auto name = reader.read<std::string>();
-				auto model = reader.read<proto::model>();
-				auto password = reader.read<std::string>();
-				auto auth_domain = reader.read<std::string>();
-				auto auth_name = reader.read<std::string>();
+			switch (id) {
+				case proto::MESSAGE_CONNECT: {
+					auto name = reader.read<std::string>();
+					auto model = reader.read<proto::model>();
+					auto password = reader.read<std::string>();
+					auto auth_domain = reader.read<std::string>();
+					auto auth_name = reader.read<std::string>();
 
-				if (cl.state || !password.empty() || !auth_domain.empty() || !auth_name.empty()) {
-					cl.disconnect(disconnect_reason::MESSAGE);
-					return;
+					if (cl.state || !password.empty() || !auth_domain.empty() || !auth_name.empty()) {
+						cl.disconnect(disconnect_reason::MESSAGE);
+						return;
+					}
+
+					cl.state = client_state(name, model, game_state_spawned());
+
+					logger::get().info() << cl.id() << " joined" << std::endl;
+					break;
 				}
 
-				cl.state = client_state(name, model, game_state_spawned());
+				default:
+					logger::get().debug() << cl.id() << " sent an invalid message ID: " << id << std::endl;
 
-				logger::get().info() << cl.id() << " joined" << std::endl;
-				break;
-			}
-
-			default:
-				logger::get().debug() << cl.id() << " sent an invalid message ID: " << id << std::endl;
-
-				cl.disconnect(disconnect_reason::MESSAGE);
-				break;
-		}
+					cl.disconnect(disconnect_reason::MESSAGE);
+					break;
+			}	
+		}		
 	} catch (const proto::read_error& e) {
 		logger::get().debug() << cl.id() << " read error: " << e.what() << std::endl;
 
