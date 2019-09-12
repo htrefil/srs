@@ -50,6 +50,8 @@ void server::process() {
 }
 
 void server::handle_connect(client& cl) {
+	cl.write(proto::CHANNEL_MESSAGES, proto::MESSAGE_SERVER_INFO, cl.cn, proto::PROTOCOL_VERSION, 0, false, description.c_str(), "");
+
 	logger::get().info() << cl.id() << " connected" << std::endl;
 }
 
