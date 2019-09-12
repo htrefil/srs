@@ -1,5 +1,5 @@
 # srs
-A Cube2: Sauerbraten server reimplementation, not based on existing Sauerbraten source code. Currently work in progress.
+A Cube 2: Sauerbraten server reimplementation, not based on existing Sauerbraten source code. Currently work in progress.
 
 ## What is done
 - Protocol data (de)serialization
