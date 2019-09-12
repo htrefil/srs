@@ -1,0 +1,5 @@
+[server]
+port = 28785
+max-clients = 128
+description = "srs"
+loglevel = "debug"
