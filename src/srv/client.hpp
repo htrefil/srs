@@ -8,7 +8,6 @@
 #include <vector>
 #include <utility>
 
-#include "game_state.hpp"
 #include "../proto/items.hpp"
 #include "../proto/consts.hpp"
 #include "../proto/writer.hpp"
@@ -24,11 +23,18 @@ enum class disconnect_reason : enet_uint8 {
 
 class client_state {
 public:
-	client_state(std::string name, proto::model model, game_state gstate);
+	client_state(std::string name, proto::model model);
 
 	std::string name;
+	std::string team;
 	proto::model model;
-	game_state gstate;
+	proto::armor armor;
+	int32_t armor_health;
+	proto::gun gun;
+	std::map<proto::gun, int32_t> guns;
+	int32_t health;
+	int32_t max_health;
+	int32_t life_sequence;
 };
 
 class client {

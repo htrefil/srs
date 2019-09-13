@@ -75,7 +75,20 @@ void server::handle_recv(client& cl, span<unsigned char> data) {
 						return;
 					}
 
-					cl.state = client_state(name, model, game_state_spawned());
+					cl.state = client_state(name, model);
+
+					cl.write(proto::CHANNEL_MESSAGES, proto::MESSAGE_WELCOME);
+					cl.write(proto::CHANNEL_MESSAGES, proto::MESSAGE_SET_TEAM, cl.cn, cl.state->team.c_str(), -1);
+					cl.write(proto::CHANNEL_MESSAGES, proto::MESSAGE_SPAWN_STATE, cl.cn, write_state(*cl.state));
+					
+					manager.walk([&](const client& c) {
+						if (&cl == &c)
+							return;
+
+						cl.write(proto::MESSAGE_INIT_CLIENT, write_init_client(c));
+					});
+
+					// TODO: resume
 
 					logger::get().info() << cl.id() << " joined" << std::endl;
 					break;
@@ -85,7 +98,7 @@ void server::handle_recv(client& cl, span<unsigned char> data) {
 					logger::get().debug() << cl.id() << " sent an invalid message ID: " << id << std::endl;
 
 					cl.disconnect(disconnect_reason::MESSAGE);
-					break;
+					return;
 			}	
 		}		
 	} catch (const proto::read_error& e) {
@@ -100,6 +113,20 @@ void server::handle_disconnect(client& cl) {
 	logger::get().info() << cl.id() << " disconnected" << std::endl;;
 
 	manager.remove(cl);
+}
+
+proto::writer::write_fn server::write_state(const client_state& state) {
+	return [&](proto::writer& writer) {
+		writer.write(state.life_sequence, state.health, state.max_health, state.armor_health, state.armor, state.gun);
+		for (const auto& gun : state.guns) 
+			writer.write(gun.second);
+	};
+}
+
+proto::writer::write_fn server::write_init_client(const client& cl) {
+	return [&](proto::writer& writer) {
+		writer.write(cl.cn, cl.state->name.c_str(), cl.state->team.c_str(), cl.state->model);
+	};
 }
 
 }

@@ -7,6 +7,7 @@
 #include "client.hpp"
 #include "client_manager.hpp"
 #include "../span.hpp"
+#include "../proto/writer.hpp"
 
 namespace srv {
 
@@ -26,6 +27,10 @@ private:
 	void handle_recv(client& cl, span<unsigned char> data);
 
 	void handle_disconnect(client& cl);
+
+	static proto::writer::write_fn write_state(const client_state& state);
+
+	static proto::writer::write_fn write_init_client(const client& cl);
 
 	client_manager manager;
 	std::string description;

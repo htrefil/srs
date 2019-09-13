@@ -23,6 +23,12 @@ static constexpr enet_uint32 DISCONNECT_TIMEOUT = 8;
 static constexpr enet_uint32 DISCONNECT_OVERFLOW = 9;
 static constexpr enet_uint32 DISCONNECT_PASSWORD = 10;
 
+static constexpr uint32_t PLAYER_STATE_ALIVE = 0;
+static constexpr uint32_t PLAYER_STATE_DEAD = 1;
+static constexpr uint32_t PLAYER_STATE_SPAWNING = 2;
+static constexpr uint32_t PLAYER_STATE_EDITING = 3;
+static constexpr uint32_t PLAYER_STATE_SPECTATOR = 4;
+
 static constexpr int32_t MESSAGE_CONNECT = 0;
 static constexpr int32_t MESSAGE_SERVER_INFO = 1;
 static constexpr int32_t MESSAGE_WELCOME = 2;
