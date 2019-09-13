@@ -74,7 +74,7 @@ void client_manager::broadcast(const client* exclude, enet_uint8 channel, ENetPa
 
 	for (size_t i = 0; i < clients.size(); i++) {
 		auto& cl = clients[i];
-		if (!cl || !cl->state || (exclude != nullptr && exclude->cn == cl->cn))
+		if (!cl || !cl->state || exclude == &*cl)
 			continue;
 
 		ENetPacket* pkt;
