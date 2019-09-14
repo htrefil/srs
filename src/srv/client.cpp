@@ -9,7 +9,7 @@
 
 namespace srv {
 
-client_state::client_state(std::string name, proto::model model) : name(std::move(name)), model(model), armor(proto::armor::BLUE) {
+client_info::client_info(std::string name, proto::model model) : name(std::move(name)), model(model), armor(proto::armor::BLUE) {
 	guns = {
 		{ proto::gun::SG, 0 },
 		{ proto::gun::CG, 0 },
@@ -26,14 +26,14 @@ client::client(ENetPeer* peer, int32_t cn) : peer(peer), cn(cn), address{ 0 } {
 }
 
 const char* client::name_or_address() const {
-	return state ? state->name.c_str() : address;
+	return info ? info->name.c_str() : address;
 }
 
 std::string client::id() const {
 	return name_or_address() + std::string(" (") + std::to_string(cn) + ")";
 }
 
-void client::disconnect(disconnect_reason reason) {
+void client::disconnect(proto::disconnect_reason reason) {
 	enet_peer_disconnect(peer, (enet_uint32)reason);
 }
 

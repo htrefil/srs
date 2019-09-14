@@ -5,6 +5,7 @@
 #include "server.hpp"
 #include "../proto/reader.hpp"
 #include "../proto/consts.hpp"
+#include "../proto/items.hpp"
 #include "../logger.hpp"
 
 namespace srv {
@@ -50,83 +51,15 @@ void server::process() {
 }
 
 void server::handle_connect(client& cl) {
-	cl.write(proto::CHANNEL_MESSAGES, proto::MESSAGE_SERVER_INFO, cl.cn, proto::PROTOCOL_VERSION, 0, false, description.c_str(), "");
-
 	logger::get().info() << cl.id() << " connected" << std::endl;
 }
 
-void server::handle_recv(client& cl, span<unsigned char> data) {
-	proto::reader reader(data);
-
-	try {
-		while (!reader.ends()) {
-			auto id = reader.read<int32_t>();
-
-			switch (id) {
-				case proto::MESSAGE_CONNECT: {
-					auto name = reader.read<std::string>();
-					auto model = reader.read<proto::model>();
-					auto password = reader.read<std::string>();
-					auto auth_domain = reader.read<std::string>();
-					auto auth_name = reader.read<std::string>();
-
-					if (cl.state || !password.empty() || !auth_domain.empty() || !auth_name.empty()) {
-						cl.disconnect(disconnect_reason::MESSAGE);
-						return;
-					}
-
-					cl.state = client_state(name, model);
-
-					cl.write(proto::CHANNEL_MESSAGES, proto::MESSAGE_WELCOME);
-					cl.write(proto::CHANNEL_MESSAGES, proto::MESSAGE_SET_TEAM, cl.cn, cl.state->team.c_str(), -1);
-					cl.write(proto::CHANNEL_MESSAGES, proto::MESSAGE_SPAWN_STATE, cl.cn, write_state(*cl.state));
-					
-					manager.walk([&](const client& c) {
-						if (&cl == &c)
-							return;
-
-						cl.write(proto::MESSAGE_INIT_CLIENT, write_init_client(c));
-					});
-
-					// TODO: resume
-
-					logger::get().info() << cl.id() << " joined" << std::endl;
-					break;
-				}
-
-				default:
-					logger::get().debug() << cl.id() << " sent an invalid message ID: " << id << std::endl;
-
-					cl.disconnect(disconnect_reason::MESSAGE);
-					return;
-			}	
-		}		
-	} catch (const proto::read_error& e) {
-		logger::get().debug() << cl.id() << " read error: " << e.what() << std::endl;
-
-		cl.disconnect(e.is_size() ? disconnect_reason::SIZE : disconnect_reason::MESSAGE);
-	}
-
-}
+void server::handle_recv(client& cl, span<unsigned char> data) {}
 
 void server::handle_disconnect(client& cl) {
-	logger::get().info() << cl.id() << " disconnected" << std::endl;;
+	logger::get().info() << cl.id() << " disconnected" << std::endl;
 
 	manager.remove(cl);
-}
-
-proto::writer::write_fn server::write_state(const client_state& state) {
-	return [&](proto::writer& writer) {
-		writer.write(state.life_sequence, state.health, state.max_health, state.armor_health, state.armor, state.gun);
-		for (const auto& gun : state.guns) 
-			writer.write(gun.second);
-	};
-}
-
-proto::writer::write_fn server::write_init_client(const client& cl) {
-	return [&](proto::writer& writer) {
-		writer.write(cl.cn, cl.state->name.c_str(), cl.state->team.c_str(), cl.state->model);
-	};
 }
 
 }

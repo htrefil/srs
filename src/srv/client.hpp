@@ -14,16 +14,9 @@
 
 namespace srv {
 
-enum class disconnect_reason : enet_uint8 {
-	NONE = proto::DISCONNECT_NORMAL,
-	MESSAGE = proto::DISCONNECT_MESSAGE_ERROR,
-	SIZE = proto::DISCONNECT_END_OF_PACKET,
-	TIMEOUT = proto::DISCONNECT_TIMEOUT,
-};
-
-class client_state {
+class client_info {
 public:
-	client_state(std::string name, proto::model model);
+	client_info(std::string name, proto::model model);
 
 	std::string name;
 	std::string team;
@@ -68,14 +61,14 @@ public:
 		}
 	}
 
-	void disconnect(disconnect_reason reason);
+	void disconnect(proto::disconnect_reason reason);
 
 	void disconnect();
 
 	ENetPeer* peer;
 	int32_t cn;
 	char address[15 + 1];
-	std::optional<client_state> state;
+	std::optional<client_info> info;
 private:
 	friend class client_manager;
 

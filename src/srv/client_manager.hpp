@@ -49,7 +49,7 @@ public:
 
 		auto data = writer.get_data();
 
-		write(exclude, proto::MESSAGE_CLIENT, cl.cn, (uint32_t)data.get_length(), data);
+		write(exclude, channel, proto::message::CLIENT, cl.cn, (uint32_t)data.get_length(), data);
 	}
 
 	template<typename... Args>

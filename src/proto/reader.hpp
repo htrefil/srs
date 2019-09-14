@@ -4,7 +4,9 @@
 #include <cstdint>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 
+#include "items.hpp"
 #include "../span.hpp"
 
 namespace proto {
@@ -28,16 +30,45 @@ public:
 	size_t get_offset() const;
 
 	span<unsigned char> span_from(size_t start, size_t end) const;
-
-	unsigned char read_byte();
 	
 	template<typename T> 
-	T read();
+	std::enable_if_t<std::is_enum_v<T>, T> read() {
+		using underlying = std::underlying_type_t<T>;
+
+		auto n = read_basic<underlying>();
+		if (n < (underlying)enum_traits<T>::MIN || n > (underlying)enum_traits<T>::MAX)
+			throw read_error(false);
+
+		return (T)n;
+	}
+
+	template<typename T> 
+	std::enable_if_t<!std::is_enum_v<T>, T> read() {
+		return read_basic<T>();
+	}
+
+	template<typename T>
+	T read_basic() {}
 
 private:
 	span<unsigned char> data;
 	size_t offset;
 };
+
+template<>
+unsigned char reader::read_basic();
+
+template<>
+bool reader::read_basic();
+
+template<>
+int32_t reader::read_basic();
+
+template<>
+uint32_t reader::read_basic();
+
+template<>
+std::string reader::read_basic();
 
 }
 #endif

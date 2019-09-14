@@ -46,69 +46,49 @@ span<unsigned char> writer::get_data() const {
 	return span(data, size);
 }
 
-void writer::write(unsigned char b) {
+void writer::write_basic(unsigned char b) {
 	write(span(&b, 1));
 }
 
-void writer::write(bool b) {
-	write_byte(b ? 1 : 0);
+void writer::write_basic(bool b) {
+	write<unsigned char>(b ? 1 : 0);
 }
 
-void writer::write(span<unsigned char> span) {
-	if (span.get_length() > capacity) {
-		auto new_data = new unsigned char[size + span.get_length() + GROW];
-
-		memcpy(new_data, data, size);
-		memcpy(new_data + size, span.get_data(), span.get_length());
-
-		delete[] data;
-		data = new_data;
-
-		size += span.get_length();
-		capacity = GROW;
-	} else {
-		memcpy(data + size, span.get_data(), span.get_length());		
-
-		size += span.get_length();
-		capacity -= span.get_length();
-	}
-}
-
-void writer::write(int32_t n) {
+void writer::write_basic(int32_t n) {
 	if (n >= -0x80 && n <= 0x7F)  {
-		write_byte((unsigned char)n);
+		write<unsigned char>((unsigned char)n);
 	} else if (n >= -0x7FFF && n <= 0x7FFF) {
-		write_byte(0x80);
-		write_byte((unsigned char)n);
-		write_byte((unsigned char)(n >> 8));
+		write<unsigned char>(0x80);
+		write<unsigned char>((unsigned char)n);
+		write<unsigned char>((unsigned char)(n >> 8));
 	} else {
-		write_byte(0x81);
-		write_byte((unsigned char)n);
-		write_byte((unsigned char)(n >> 8));
-		write_byte((unsigned char)(n >> 16));
-		write_byte((unsigned char)(n >> 28));
+		write<unsigned char>(0x81);
+		write<unsigned char>((unsigned char)n);
+		write<unsigned char>((unsigned char)(n >> 8));
+		write<unsigned char>((unsigned char)(n >> 16));
+		write<unsigned char>((unsigned char)(n >> 28));
 	}
 }
 
-void writer::write(uint32_t n) {
+void writer::write_basic(uint32_t n) {
 	if (n < 1 << 7) {
-		write_byte((unsigned char)n);
+		write<unsigned char>((unsigned char)n);
 	} else if (n < 1 << 14) {
-		write_byte(((unsigned char)n & 0x7F) | 0x80);
-		write_byte((unsigned char)(n >> 7));
+		write<unsigned char>(((unsigned char)n & 0x7F) | 0x80);
+		write<unsigned char>((unsigned char)(n >> 7));
 	} else if (n < 1 << 21) {
-	    write_byte(((unsigned char)n & 0x7F) | 0x80);
-	    write_byte(((unsigned char)(n >> 7) & 0x7F) | 0x80);
-	    write_byte((unsigned char)(n >> 14));
+	    write<unsigned char>(((unsigned char)n & 0x7F) | 0x80);
+	    write<unsigned char>(((unsigned char)(n >> 7) & 0x7F) | 0x80);
+	    write<unsigned char>((unsigned char)(n >> 14));
 	} else {
-		write_byte(((unsigned char)n & 0x7F) | 0x80);
-		write_byte(((unsigned char)(n >> 7) & 0x7F) | 0x80);
-		write_byte(((unsigned char)(n >> 14) & 0x7F) | 0x80);
-		write_byte((unsigned char)(n >> 21));
+		write<unsigned char>(((unsigned char)n & 0x7F) | 0x80);
+		write<unsigned char>(((unsigned char)(n >> 7) & 0x7F) | 0x80);
+		write<unsigned char>(((unsigned char)(n >> 14) & 0x7F) | 0x80);
+		write<unsigned char>((unsigned char)(n >> 21));
 	}
 }
 
-void writer::write(const char* str) {
+void writer::write_basic(const char* str) {
 	auto length = strlen(str) + 1;
 	
 	for (size_t i = 0; i < length; ) {
@@ -127,38 +107,28 @@ void writer::write(const char* str) {
 	}
 }
 
-void writer::write(write_fn f) {
+void writer::write_basic(write_fn f) {
 	f(*this);
 }
 
-void writer::write(ENetPacket* packet) {
-	write(span(packet->data, packet->dataLength));
+void writer::write_basic(span<unsigned char> span) {
+	if (span.get_length() > capacity) {
+		auto new_data = new unsigned char[size + span.get_length() + GROW];
 
-	enet_packet_destroy(packet);
-}
+		memcpy(new_data, data, size);
+		memcpy(new_data + size, span.get_data(), span.get_length());
 
-void writer::write_byte(unsigned char b) {
-	write(b);
-}
+		delete[] data;
+		data = new_data;
 
-void writer::write(gun g) {
-	write((int32_t)g);
-}
+		size += span.get_length();
+		capacity = GROW;
+	} else {
+		memcpy(data + size, span.get_data(), span.get_length());		
 
-void writer::write(model m) {
-	write((int32_t)m);
-}
-
-void writer::write(gamemode m) {
-	write((int32_t)m);
-}
-
-void writer::write(armor a) {
-	write((int32_t)a);
-}
-
-void writer::write(const writer& writer) {
-	write(writer.get_data());
+		size += span.get_length();
+		capacity -= span.get_length();
+	}
 }
 
 }
