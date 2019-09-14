@@ -9,7 +9,7 @@
 
 namespace srv {
 
-client_info::client_info(std::string name, proto::model model) : name(std::move(name)), model(model), armor(proto::armor::BLUE), armor_health(25), gun(proto::gun::PISTOL), health(100), max_health(100), life_sequence(0) {
+client_info::client_info(std::string name, proto::model model) : name(std::move(name)), player_state(proto::player_state::ALIVE), model(model), armor(proto::armor::BLUE), armor_health(25), gun(proto::gun::PISTOL), health(100), max_health(100), life_sequence(0) {
 	guns = {
 		{ proto::gun::SG, 0 },
 		{ proto::gun::CG, 0 },

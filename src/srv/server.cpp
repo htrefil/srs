@@ -71,7 +71,7 @@ void server::handle_recv(client& cl, span<unsigned char> data) {
 					auto auth_domain = reader.read<std::string>();
 					auto auth_name = reader.read<std::string>();
 
-					if (cl.info|| !password.empty() || !auth_domain.empty() || !auth_name.empty()) {
+					if (cl.info || !password.empty() || !auth_domain.empty() || !auth_name.empty()) {
 						cl.disconnect(proto::disconnect_reason::MESSAGE_ERROR);
 						return;
 					}
@@ -79,6 +79,66 @@ void server::handle_recv(client& cl, span<unsigned char> data) {
 					cl.info = client_info(name, model);
 
 					logger::get().info() << cl.id() << " joined" << std::endl;
+					break;
+				}
+
+				case proto::message::POSITION: {
+					static constexpr auto RAD = 3.14159265358979f / 180.0f;
+
+					reader.read<uint32_t>();
+					
+					// Start of what we will send to other clients.
+					auto start = reader.get_offset();
+
+					reader.read<unsigned char>();
+
+					auto flags = reader.read<uint32_t>();
+
+					vector position;
+					for (size_t i = 0; i < 3; i++) {
+						auto a = reader.read<unsigned char>();
+						auto b = reader.read<unsigned char>();
+						auto value = (int32_t)a | ((int32_t)b << 8);
+
+						if ((flags & (1 << i)) != 0) {
+							auto d = reader.read<unsigned char>();
+
+							value |= (int32_t)d << 16;
+							if ((value & 0x800000) != 0) 
+								value |= -16777216;
+						}
+
+						position[i] = (float)value / proto::DMF;
+					}
+
+					for (size_t i = 0; i < 3; i++) 
+						reader.read<unsigned char>();
+
+					auto magnitude = (int32_t)reader.read<unsigned char>();
+					if ((flags & (1 << 3)) != 0) 
+						magnitude |= ((int32_t)reader.read<unsigned char>() << 8);
+
+					auto direction = (int32_t)reader.read<unsigned char>() | ((int32_t)reader.read<unsigned char>() << 8);
+					if ((flags & (1 << 4)) != 0) {
+						reader.read<unsigned char>();
+
+						if ((flags & (1 << 5)) != 0) 
+							reader.read<unsigned char>();
+
+						if ((flags & (1 << 6)) != 0) {
+							for (size_t i = 0; i < 2; i++)
+								reader.read<unsigned char>();
+						}
+					}
+
+					vector vel(
+						(float)(direction % 360) * RAD * (float)magnitude,
+						(float)(std::clamp(direction / 360, 0, 180) - 90) * RAD * (float)magnitude
+					);
+
+					if (cl.info) 
+						manager.write(&cl, proto::CHANNEL_POSITIONS, proto::message::POSITION, cl.cn, reader.span_from(start, reader.get_offset()));
+
 					break;
 				}
 

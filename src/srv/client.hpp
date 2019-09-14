@@ -20,6 +20,7 @@ public:
 
 	std::string name;
 	std::string team;
+	proto::player_state player_state;
 	proto::model model;
 	proto::armor armor;
 	int32_t armor_health;
