@@ -172,9 +172,9 @@ void server::handle_disconnect(client& cl) {
 }
 
 void server::write_state(proto::writer& writer, const client_info& info) {
-	writer.write(info.life_sequence, info.health, info.max_health, info.armor_health, info.armor, info.gun);
-	for (const auto& gun : info.guns) 
-		writer.write(gun.second);
+	writer.write(info.life_sequence, info.health, info.max_health, info.armor_health, info.armor, info.weapon);
+	for (const auto& weapon : info.weapons) 
+		writer.write(weapon.second);
 }
 
 }

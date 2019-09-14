@@ -24,8 +24,8 @@ public:
 	proto::model model;
 	proto::armor armor;
 	int32_t armor_health;
-	proto::gun gun;
-	std::map<proto::gun, int32_t> guns;
+	proto::weapon weapon;
+	std::map<proto::weapon, int32_t> weapons;
 	int32_t health;
 	int32_t max_health;
 	int32_t life_sequence;

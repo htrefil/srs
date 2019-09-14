@@ -8,7 +8,7 @@
 
 namespace proto {
 
-enum class gun : int32_t {
+enum class weapon : int32_t {
 	FIST = 0,
 	SG,
 	CG,
@@ -200,9 +200,9 @@ template<typename T>
 struct enum_traits {};
 
 template<>
-struct enum_traits<gun> {
-	static constexpr auto MIN = gun::FIST;
-	static constexpr auto MAX = gun::PISTOL;
+struct enum_traits<weapon> {
+	static constexpr auto MIN = weapon::FIST;
+	static constexpr auto MAX = weapon::PISTOL;
 };
 
 template<>
