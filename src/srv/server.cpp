@@ -1,6 +1,7 @@
 #include <utility>
 #include <stdexcept>
 #include <algorithm>
+#include <functional>
 
 #include "server.hpp"
 #include "../proto/reader.hpp"
@@ -57,8 +58,9 @@ void server::handle_connect(client& cl) {
 }
 
 void server::handle_recv(client& cl, span<unsigned char> data) {
-	proto::reader reader(data);
+	using namespace std::placeholders; 
 
+	proto::reader reader(data);
 	try {
 		while (!reader.ends()) {
 			auto message = reader.read<proto::message>();
@@ -77,6 +79,9 @@ void server::handle_recv(client& cl, span<unsigned char> data) {
 					}
 
 					cl.info = client_info(name, model);
+
+					cl.write(proto::CHANNEL_MESSAGES, proto::message::SET_TEAM, cl.cn, cl.info->team.c_str());
+					cl.write(proto::CHANNEL_MESSAGES, proto::message::SPAWN_STATE, cl.cn, std::bind(write_state, _1, *cl.info));
 
 					logger::get().info() << cl.id() << " joined" << std::endl;
 					break;
@@ -164,6 +169,12 @@ void server::handle_disconnect(client& cl) {
 	logger::get().info() << cl.id() << " disconnected" << std::endl;;
 
 	manager.remove(cl);
+}
+
+void server::write_state(proto::writer& writer, const client_info& info) {
+	writer.write(info.life_sequence, info.health, info.max_health, info.armor_health, info.armor, info.gun);
+	for (const auto& gun : info.guns) 
+		writer.write(gun.second);
 }
 
 }

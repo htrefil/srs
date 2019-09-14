@@ -28,6 +28,8 @@ private:
 
 	void handle_disconnect(client& cl);
 
+	static void write_state(proto::writer& writer, const client_info& info);
+
 	client_manager manager;
 	std::string description;
 	ENetHost* host;
