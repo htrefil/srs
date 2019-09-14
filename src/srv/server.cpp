@@ -52,12 +52,56 @@ void server::process() {
 
 void server::handle_connect(client& cl) {
 	logger::get().info() << cl.id() << " connected" << std::endl;
+
+	cl.write(proto::CHANNEL_MESSAGES, proto::message::SERVER_INFO, cl.cn, proto::PROTOCOL_VERSION, 0, false, description.c_str(), "");
 }
 
-void server::handle_recv(client& cl, span<unsigned char> data) {}
+void server::handle_recv(client& cl, span<unsigned char> data) {
+	proto::reader reader(data);
+
+	try {
+		while (!reader.ends()) {
+			auto message = reader.read<proto::message>();
+
+			switch (message) {
+				case proto::message::CONNECT: {
+					auto name = reader.read<std::string>();
+					auto model = reader.read<proto::model>();
+					auto password = reader.read<std::string>();
+					auto auth_domain = reader.read<std::string>();
+					auto auth_name = reader.read<std::string>();
+
+					if (cl.info|| !password.empty() || !auth_domain.empty() || !auth_name.empty()) {
+						cl.disconnect(proto::disconnect_reason::MESSAGE_ERROR);
+						return;
+					}
+
+					cl.info = client_info(name, model);
+
+					logger::get().info() << cl.id() << " joined" << std::endl;
+					break;
+				}
+
+				default:
+					logger::get().debug() << cl.id() << " sent an unexpected message: " << (std::underlying_type_t<proto::message>)message << std::endl;
+					return;
+			}
+		}
+	} catch (const proto::read_error& e) {
+		cl.disconnect(e.is_size() ? proto::disconnect_reason::END_OF_PACKET : proto::disconnect_reason::MESSAGE_ERROR);
+
+		logger::get().debug() << cl.id() << " read error: " << e.what() << std::endl;
+	}
+
+}
 
 void server::handle_disconnect(client& cl) {
 	logger::get().info() << cl.id() << " disconnected" << std::endl;
+
+	if (cl.info) 
+		manager.write(proto::CHANNEL_MESSAGES, proto::message::LEAVE, cl.cn);
+
+	logger::get().info() << cl.id() << " disconnected" << std::endl;;
 
 	manager.remove(cl);
 }

@@ -11,6 +11,7 @@
 #include "consts.hpp"
 #include "items.hpp"
 #include "../span.hpp"
+#include "../logger.hpp"
 
 namespace proto {
 
@@ -34,7 +35,7 @@ public:
 
 	template<typename T, typename... Args> 
 	void write(T first, Args... args) {
-		write(first);
+		write<T>(first);
 		write(args...);
 	}
 
