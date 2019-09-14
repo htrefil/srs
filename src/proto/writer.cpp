@@ -48,20 +48,14 @@ span<unsigned char> writer::get_data() const {
 }
 
 void writer::write_basic(unsigned char b) {
-	logger::get().debug() << __FUNCTION__ << std::endl;
-
 	write(span(&b, 1));
 }
 
 void writer::write_basic(bool b) {
-	logger::get().debug() << __FUNCTION__ << std::endl;
-
 	write<unsigned char>(b ? 1 : 0);
 }
 
 void writer::write_basic(int32_t n) {
-	logger::get().debug() << __FUNCTION__ << std::endl;
-
 	if (n >= -0x80 && n <= 0x7F)  {
 		write<unsigned char>((unsigned char)n);
 	} else if (n >= -0x7FFF && n <= 0x7FFF) {
@@ -78,8 +72,6 @@ void writer::write_basic(int32_t n) {
 }
 
 void writer::write_basic(uint32_t n) {
-	logger::get().debug() << __FUNCTION__ << std::endl;
-
 	if (n < 1 << 7) {
 		write<unsigned char>((unsigned char)n);
 	} else if (n < 1 << 14) {
@@ -98,8 +90,6 @@ void writer::write_basic(uint32_t n) {
 }
 
 void writer::write_basic(const char* str) {
-	logger::get().debug() << __FUNCTION__ << std::endl;
-
 	auto length = strlen(str) + 1;
 	
 	for (size_t i = 0; i < length; ) {
@@ -119,14 +109,10 @@ void writer::write_basic(const char* str) {
 }
 
 void writer::write_basic(write_fn f) {
-	logger::get().debug() << __FUNCTION__ << std::endl;
-
 	f(*this);
 }
 
 void writer::write_basic(span<unsigned char> span) {
-	logger::get().debug() << __FUNCTION__ << std::endl;
-	
 	if (span.get_length() > capacity) {
 		auto new_data = new unsigned char[size + span.get_length() + GROW];
 
