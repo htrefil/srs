@@ -81,7 +81,8 @@ void server::handle_recv(client& cl, span<unsigned char> data) {
 					cl.info = client_info(name, model);
 
 					cl.write(proto::CHANNEL_MESSAGES, proto::message::SET_TEAM, cl.cn, cl.info->team.c_str());
-					cl.write(proto::CHANNEL_MESSAGES, proto::message::SPAWN_STATE, cl.cn, std::bind(write_state, _1, *cl.info));
+					cl.write(proto::CHANNEL_MESSAGES, proto::message::SPAWN_STATE, cl.cn, std::bind(write_state, _1, std::cref(*cl.info)));
+					cl.write(proto::CHANNEL_MESSAGES, std::bind(write_resume, _1, std::cref(manager)));
 
 					logger::get().info() << cl.id() << " joined" << std::endl;
 					break;
@@ -175,6 +176,16 @@ void server::write_state(proto::writer& writer, const client_info& info) {
 	writer.write(info.life_sequence, info.health, info.max_health, info.armor_health, info.armor, info.weapon);
 	for (const auto& weapon : info.weapons) 
 		writer.write(weapon.second);
+}
+
+void server::write_resume(proto::writer& writer, const client_manager& manager) {
+	using namespace std::placeholders; 
+
+	writer.write(proto::message::RESUME);
+	manager.walk([&](const client& cl) {
+		writer.write(cl.cn, cl.info->player_state, cl.info->frags, 0, cl.info->quad_time, std::bind(write_state, _1, *cl.info));
+	});
+	writer.write<int32_t>(-1);
 }
 
 }

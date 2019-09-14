@@ -29,6 +29,8 @@ public:
 	int32_t health;
 	int32_t max_health;
 	int32_t life_sequence;
+	int32_t quad_time;
+	int32_t frags;
 };
 
 class client {

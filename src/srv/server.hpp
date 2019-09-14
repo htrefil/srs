@@ -30,6 +30,8 @@ private:
 
 	static void write_state(proto::writer& writer, const client_info& info);
 
+	static void write_resume(proto::writer& writer, const client_manager& manager);
+
 	client_manager manager;
 	std::string description;
 	ENetHost* host;
