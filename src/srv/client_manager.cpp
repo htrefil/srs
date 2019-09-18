@@ -68,6 +68,22 @@ void client_manager::walk(std::function<void(client&)> f) {
 	}
 }
 
+client_iterator<std::optional<client>> client_manager::begin() {
+	return client_iterator(span(clients.data(), clients.size()), 0);
+}
+
+client_iterator<std::optional<client>> client_manager::end() {
+	return client_iterator(span(clients.data(), clients.size()), clients.size());
+}
+
+client_iterator<const std::optional<client>> client_manager::cbegin() const {
+	return client_iterator(span(clients.data(), clients.size()), 0);
+}
+
+client_iterator<const std::optional<client>> client_manager::cend() const {
+	return client_iterator(span(clients.data(), clients.size()), clients.size());
+}
+
 void client_manager::broadcast(const client* exclude, enet_uint8 channel, ENetPacket* packet) {
 	bool err = false;
 	bool freed = false;

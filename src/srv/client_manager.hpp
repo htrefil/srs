@@ -10,6 +10,41 @@
 
 namespace srv {
 
+template<typename T>
+class client_iterator {
+public:
+	using client_type = typename T::value_type;
+
+	bool operator!=(const client_iterator& other) {
+		return position != other.position;
+	}
+
+	client_iterator<T>& operator++() {
+		position++;
+
+		while (position < clients.get_length() && !clients[position])
+			position++;
+
+		return *this;
+	}
+
+	const client_type& operator*() const {
+		return *&*clients[position];
+	}
+
+	client_type& operator*() {
+		return *&*clients[position];
+	}
+
+private:
+	friend class client_manager;
+
+	client_iterator(span<T> clients, size_t position) : clients(clients), position(position) {}
+
+	span<T> clients;
+	size_t position;
+};
+
 class client_manager {
 public:
 	client_manager(size_t max_clients);
@@ -62,6 +97,14 @@ public:
 	void walk(std::function<void(const client&)> f) const;
 
 	void walk(std::function<void(client&)> f);
+
+	client_iterator<std::optional<client>> begin();
+
+	client_iterator<std::optional<client>> end();	
+
+	client_iterator<const std::optional<client>> cbegin() const;
+
+	client_iterator<const std::optional<client>> cend() const;
 
 private:
 	struct scheduled_packet {
