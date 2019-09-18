@@ -24,13 +24,15 @@ public:
 private:
 	void handle_connect(client& cl);
 
-	void handle_recv(client& cl, span<unsigned char> data);
+	void handle_recv(client& cl, span<const unsigned char> data);
 
 	void handle_disconnect(client& cl);
 
 	static void write_state(proto::writer& writer, const client_info& info);
 
 	static void write_resume(proto::writer& writer, const client_manager& manager);
+
+	static void write_init_client(proto::writer& writer, const client& cl);
 
 	client_manager manager;
 	std::string description;

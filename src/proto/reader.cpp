@@ -12,7 +12,7 @@ bool read_error::is_size() const {
 	return size;
 }
 
-reader::reader(span<unsigned char> data) : data(data), offset(0) {}
+reader::reader(span<const unsigned char> data) : data(data), offset(0) {}
 
 bool reader::ends() const {
 	return offset >= data.get_length();
@@ -22,7 +22,7 @@ size_t reader::get_offset() const {
 	return offset;
 }
 
-span<unsigned char> reader::span_from(size_t start, size_t end) const {
+span<const unsigned char> reader::span_from(size_t start, size_t end) const {
 	return data.sub(start, end);
 }
 

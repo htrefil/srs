@@ -6,12 +6,10 @@
 
 template<typename T>
 class span {
-public:
-	span(const T* data, size_t length) : data(data), length(length) {}
+public:	
+	span(T* data, size_t length) : data(data), length(length) {}
 
-	span(const std::vector<T>& data) : data(data.data()), length(data.size()) {}
-
-	const T* get_data() const {
+	T* get_data() const {
 		return data;
 	}
 
@@ -27,7 +25,21 @@ public:
 		return data + length;
 	}
 
+	T* begin() const {
+		return data;
+	}
+
+	T* end() const {
+		return data + length;
+	}
+
 	const T& operator[](size_t idx) const {
+		assert(idx < length);
+
+		return data[idx];
+	}
+
+	T& operator[](size_t idx) {
 		assert(idx < length);
 
 		return data[idx];
@@ -40,7 +52,7 @@ public:
 	}
 
 private:
-	const T* data;
+	T* data;
 	size_t length;
 };
 

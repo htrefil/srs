@@ -38,7 +38,7 @@ void server::process() {
 			break;
 		
 		case ENET_EVENT_TYPE_RECEIVE:
-			handle_recv(*(client*)event.peer->data, span(event.packet->data, event.packet->dataLength));
+			handle_recv(*(client*)event.peer->data, span<const unsigned char>(event.packet->data, event.packet->dataLength));
 			enet_packet_destroy(event.packet);
 			break;
 
@@ -57,7 +57,7 @@ void server::handle_connect(client& cl) {
 	cl.write(proto::CHANNEL_MESSAGES, proto::message::SERVER_INFO, cl.cn, proto::PROTOCOL_VERSION, 0, false, description.c_str(), "");
 }
 
-void server::handle_recv(client& cl, span<unsigned char> data) {
+void server::handle_recv(client& cl, span<const unsigned char> data) {
 	using namespace std::placeholders; 
 
 	proto::reader reader(data);
@@ -80,9 +80,16 @@ void server::handle_recv(client& cl, span<unsigned char> data) {
 
 					cl.info = client_info(name, model);
 
-					cl.write(proto::CHANNEL_MESSAGES, proto::message::SET_TEAM, cl.cn, cl.info->team.c_str());
+					cl.write(proto::CHANNEL_MESSAGES, proto::message::SET_TEAM, cl.cn, cl.info->team.c_str(), -1);
 					cl.write(proto::CHANNEL_MESSAGES, proto::message::SPAWN_STATE, cl.cn, std::bind(write_state, _1, std::cref(*cl.info)));
 					cl.write(proto::CHANNEL_MESSAGES, std::bind(write_resume, _1, std::cref(manager)));
+					
+					manager.walk([&](const client& c) {
+						if (&c == &cl)
+							return;
+
+						cl.write(proto::CHANNEL_MESSAGES, std::bind(write_init_client, _1, std::cref(c)));
+					});
 
 					logger::get().info() << cl.id() << " joined" << std::endl;
 					break;
@@ -162,8 +169,6 @@ void server::handle_recv(client& cl, span<unsigned char> data) {
 }
 
 void server::handle_disconnect(client& cl) {
-	logger::get().info() << cl.id() << " disconnected" << std::endl;
-
 	if (cl.info) 
 		manager.write(proto::CHANNEL_MESSAGES, proto::message::LEAVE, cl.cn);
 
@@ -186,6 +191,10 @@ void server::write_resume(proto::writer& writer, const client_manager& manager) 
 		writer.write(cl.cn, cl.info->player_state, cl.info->frags, 0, cl.info->quad_time, std::bind(write_state, _1, *cl.info));
 	});
 	writer.write<int32_t>(-1);
+}
+
+void server::write_init_client(proto::writer& writer, const client& cl) {
+	writer.write(proto::message::INIT_CLIENT, cl.cn, cl.info->name.c_str(), cl.info->team.c_str(), cl.info->model);
 }
 
 }

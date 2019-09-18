@@ -31,7 +31,7 @@ public:
 
 	bool is_empty() const;
 
-	span<unsigned char> get_data() const;
+	span<const unsigned char> get_data() const;
 
 	template<typename T, typename... Args> 
 	void write(T first, Args... args) {
@@ -66,7 +66,7 @@ private:
 
 	void write_basic(write_fn f);
 
-	void write_basic(span<unsigned char> span);
+	void write_basic(span<const unsigned char> span);
 
 	unsigned char* data;
 	size_t size;
@@ -87,7 +87,7 @@ template<>
 void writer::write(const char* s);
 
 template<>
-void writer::write(span<unsigned char> span);
+void writer::write(span<const unsigned char> span);
 */
 }
 #endif
