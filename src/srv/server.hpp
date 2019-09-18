@@ -24,7 +24,7 @@ public:
 private:
 	void handle_connect(client& cl);
 
-	void handle_recv(client& cl, span<const unsigned char> data);
+	void handle_recv(client& cl, cspan<unsigned char> data);
 
 	void handle_disconnect(client& cl);
 

@@ -56,4 +56,7 @@ private:
 	size_t length;
 };
 
+template<typename T>
+using cspan = span<const T>;
+
 #endif

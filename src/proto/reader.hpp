@@ -23,13 +23,13 @@ private:
 
 class reader {
 public:
-	reader(span<const unsigned char> data);
+	reader(cspan<unsigned char> data);
 
 	bool ends() const;
 
 	size_t get_offset() const;
 
-	span<const unsigned char> span_from(size_t start, size_t end) const;
+	cspan<unsigned char> span_from(size_t start, size_t end) const;
 	
 	template<typename T> 
 	std::enable_if_t<std::is_enum_v<T>, T> read() {
@@ -51,7 +51,7 @@ public:
 	T read_basic() {}
 
 private:
-	span<const unsigned char> data;
+	cspan<unsigned char> data;
 	size_t offset;
 };
 

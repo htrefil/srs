@@ -38,7 +38,7 @@ void server::process() {
 			break;
 		
 		case ENET_EVENT_TYPE_RECEIVE:
-			handle_recv(*(client*)event.peer->data, span<const unsigned char>(event.packet->data, event.packet->dataLength));
+			handle_recv(*(client*)event.peer->data, cspan<unsigned char>(event.packet->data, event.packet->dataLength));
 			enet_packet_destroy(event.packet);
 			break;
 
@@ -57,7 +57,7 @@ void server::handle_connect(client& cl) {
 	cl.write(proto::CHANNEL_MESSAGES, proto::message::SERVER_INFO, cl.cn, proto::PROTOCOL_VERSION, 0, false, description.c_str(), "");
 }
 
-void server::handle_recv(client& cl, span<const unsigned char> data) {
+void server::handle_recv(client& cl, cspan<unsigned char> data) {
 	using namespace std::placeholders; 
 
 	proto::reader reader(data);

@@ -43,12 +43,12 @@ bool writer::is_empty() const {
 	return data != nullptr;
 }
 
-span<const unsigned char> writer::get_data() const {
-	return span<const unsigned char>(data, size);
+cspan<unsigned char> writer::get_data() const {
+	return cspan<unsigned char>(data, size);
 }
 
 void writer::write_basic(unsigned char b) {
-	write(span<const unsigned char>(&b, 1));
+	write(cspan<unsigned char>(&b, 1));
 }
 
 void writer::write_basic(bool b) {
@@ -112,7 +112,7 @@ void writer::write_basic(write_fn f) {
 	f(*this);
 }
 
-void writer::write_basic(span<const unsigned char> span) {
+void writer::write_basic(cspan<unsigned char> span) {
 	if (span.get_length() > capacity) {
 		auto new_data = new unsigned char[size + span.get_length() + GROW];
 
