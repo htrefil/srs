@@ -60,7 +60,7 @@ void writer::write_basic(int32_t n) {
 
 	if (u < 0x80 || (u > 0x81 && u <= 0xFF)) {
 		write<unsigned char>((unsigned char)n);
-	} else if (n <= 0xFFFF) {
+	} else if (u <= 0xFFFF) {
 		write<unsigned char>(0x80);
 		write<unsigned char>((unsigned char)n);
 		write<unsigned char>((unsigned char)(n >> 8));
