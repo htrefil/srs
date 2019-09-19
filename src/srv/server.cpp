@@ -73,20 +73,22 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					auto auth_domain = reader.read<std::string>();
 					auto auth_name = reader.read<std::string>();
 
-					if (cl.info || !password.empty() || !auth_domain.empty() || !auth_name.empty()) {
+					if (cl.info || std::get_if<player_state_spawned>(&cl.info->state) != nullptr || !password.empty() || !auth_domain.empty() || !auth_name.empty()) {
 						cl.disconnect(proto::disconnect_reason::MESSAGE_ERROR);
 						return;
 					}
 
-					cl.info = client_info(name, model);
+					cl.info = client_info(name, "", model, player_state_spawned());
+
+					const auto& player_state = std::get<player_state_spawned>(cl.info->state);
 
 					cl.write(proto::CHANNEL_MESSAGES, proto::message::MAP_CHANGE, "", proto::gamemode::COOP_EDIT, false);
 					cl.write(proto::CHANNEL_MESSAGES, proto::message::SET_TEAM, cl.cn, cl.info->team.c_str(), -1);
-					cl.write(proto::CHANNEL_MESSAGES, proto::message::SPAWN_STATE, cl.cn, std::bind(write_state, _1, std::cref(*cl.info)));
+					cl.write(proto::CHANNEL_MESSAGES, proto::message::SPAWN_STATE, cl.cn, std::bind(write_state, _1, std::cref(player_state)));
 					cl.write(proto::CHANNEL_MESSAGES, std::bind(write_resume, _1, std::cref(manager)));
 					
 					for (const auto& c : manager) {
-						if (&c == &cl)
+						if (&c == &cl || !c.info)
 							continue;
 
 						cl.write(proto::CHANNEL_MESSAGES, std::bind(write_init_client, _1, std::cref(c)));
@@ -158,6 +160,13 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					break;
 				}
 
+				case proto::message::CONFIRM_SPAWN: {
+					auto life_sequence = reader.read<int32_t>();
+					auto weapon = reader.read<proto::weapon>();
+
+					break;
+				}
+
 				default:
 					logger::get().debug() << cl.id() << " sent an unexpected message: " << (std::underlying_type_t<proto::message>)message << std::endl;
 					return;
@@ -180,19 +189,32 @@ void server::handle_disconnect(client& cl) {
 	manager.remove(cl);
 }
 
-void server::write_state(proto::writer& writer, const client_info& info) {
-	writer.write(info.life_sequence, info.health, info.max_health, info.armor_health, info.armor, info.weapon);
-	for (const auto& weapon : info.weapons) 
+void server::write_state(proto::writer& writer, const player_state_spawned& state) {
+	writer.write(state.life_sequence, state.health, state.max_health, state.armor_health, state.armor, state.weapon);
+	for (const auto& weapon : state.weapons) 
 		writer.write(weapon.second);
 }
 
 void server::write_resume(proto::writer& writer, const client_manager& manager) {
+	static const player_state_spawned DUMMY_STATE;
+
 	writer.write(proto::message::RESUME);
 
-	for (const auto& cl : manager) 
-		writer.write(cl.cn, cl.info->player_state, cl.info->frags, 0, cl.info->quad_time, std::bind(write_state, _1, *cl.info));
+	for (const auto& cl : manager) {
+		if (!cl.info)
+			continue;
 
-	writer.write<int32_t>(-1);
+		auto player_state = proto::player_state::ALIVE;
+		auto state = std::get_if<player_state_spawned>(&cl.info->state);
+		if (state == nullptr) {
+			state = &DUMMY_STATE;
+			player_state = std::get_if<player_state_spectator>(&cl.info->state) == nullptr ? proto::player_state::DEAD : proto::player_state::SPECTATOR;
+		}
+
+		writer.write(cl.cn, player_state, cl.info->frags, 0, state->quad_time, std::bind(write_state, _1, std::cref(*state)));
+	}
+
+	writer.write(-1);
 }
 
 void server::write_init_client(proto::writer& writer, const client& cl) {

@@ -8,6 +8,7 @@
 #include <vector>
 #include <utility>
 
+#include "player_state.hpp"
 #include "../proto/items.hpp"
 #include "../proto/consts.hpp"
 #include "../proto/writer.hpp"
@@ -16,20 +17,12 @@ namespace srv {
 
 class client_info {
 public:
-	client_info(std::string name, proto::model model);
+	client_info(std::string name, std::string team, proto::model model, player_state state);
 
 	std::string name;
 	std::string team;
-	proto::player_state player_state;
 	proto::model model;
-	proto::armor armor;
-	int32_t armor_health;
-	proto::weapon weapon;
-	std::map<proto::weapon, int32_t> weapons;
-	int32_t health;
-	int32_t max_health;
-	int32_t life_sequence;
-	int32_t quad_time;
+	player_state state;
 	int32_t frags;
 };
 

@@ -4,6 +4,7 @@
 #include <string>
 #include <cstdlib>
 
+#include "player_state.hpp"
 #include "client.hpp"
 #include "client_manager.hpp"
 #include "../span.hpp"
@@ -28,7 +29,7 @@ private:
 
 	void handle_disconnect(client& cl);
 
-	static void write_state(proto::writer& writer, const client_info& info);
+	static void write_state(proto::writer& writer, const player_state_spawned& state);
 
 	static void write_resume(proto::writer& writer, const client_manager& manager);
 

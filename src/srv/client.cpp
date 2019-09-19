@@ -9,16 +9,7 @@
 
 namespace srv {
 
-client_info::client_info(std::string name, proto::model model) : name(std::move(name)), player_state(proto::player_state::ALIVE), model(model), armor(proto::armor::BLUE), armor_health(25), weapon(proto::weapon::PISTOL), health(100), max_health(100), life_sequence(0), quad_time(0), frags(0) {
-	weapons = {
-		{ proto::weapon::SG, 0 },
-		{ proto::weapon::CG, 0 },
-		{ proto::weapon::RL, 0 },
-		{ proto::weapon::RIFLE, 0 },
-		{ proto::weapon::GL, 1 },
-		{ proto::weapon::PISTOL, 40 },
-	};
-}
+client_info::client_info(std::string name, std::string team, proto::model model, player_state state) : name(name), team(team), model(model), state(state), frags(0) {}
 
 client::client(ENetPeer* peer, int32_t cn) : peer(peer), cn(cn), address{ 0 } {
 	if (enet_address_get_host_ip(&peer->address, address, sizeof(address)) < 0)
