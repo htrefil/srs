@@ -50,24 +50,6 @@ void client_manager::flush() {
 	}
 }
 
-void client_manager::walk(std::function<void(const client&)> f) const {
-	for (const auto& cl : clients) {
-		if (!cl)
-			continue;
-
-		f(*cl);
-	}
-}
-
-void client_manager::walk(std::function<void(client&)> f) {
-	for (auto& cl : clients) {
-		if (!cl)
-			continue;
-
-		f(*cl);
-	}
-}
-
 client_iterator<std::optional<client>> client_manager::begin() {
 	return client_iterator(span(clients.data(), clients.size()), 0);
 }
@@ -76,11 +58,11 @@ client_iterator<std::optional<client>> client_manager::end() {
 	return client_iterator(span(clients.data(), clients.size()), clients.size());
 }
 
-client_iterator<const std::optional<client>> client_manager::cbegin() const {
+client_iterator<const std::optional<client>> client_manager::begin() const {
 	return client_iterator(span(clients.data(), clients.size()), 0);
 }
 
-client_iterator<const std::optional<client>> client_manager::cend() const {
+client_iterator<const std::optional<client>> client_manager::end() const {
 	return client_iterator(span(clients.data(), clients.size()), clients.size());
 }
 

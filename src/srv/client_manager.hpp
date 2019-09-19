@@ -3,6 +3,7 @@
 #include <optional>
 #include <vector>
 #include <utility>
+#include <type_traits>
 
 #include "client.hpp"
 #include "../proto/writer.hpp"
@@ -10,12 +11,28 @@
 
 namespace srv {
 
+template<bool C, typename T>
+struct add_const_if {};
+
+template<typename T>
+struct add_const_if<true, T> {
+	using type = const T;
+};
+
+template<typename T>
+struct add_const_if<false, T> {
+	using type = T;
+};
+
+template<bool C, typename T>
+using add_const_if_t = typename add_const_if<C, T>::type;
+
 template<typename T>
 class client_iterator {
 public:
 	using client_type = typename T::value_type;
 
-	bool operator!=(const client_iterator& other) {
+	bool operator!=(const client_iterator<T>& other) {
 		return position != other.position;
 	}
 
@@ -29,11 +46,11 @@ public:
 	}
 
 	const client_type& operator*() const {
-		return *&*clients[position];
+		return *clients[position];
 	}
 
-	client_type& operator*() {
-		return *&*clients[position];
+	add_const_if_t<std::is_const_v<T>, client_type>& operator*() {
+		return *clients[position];
 	}
 
 private:
@@ -47,6 +64,10 @@ private:
 
 class client_manager {
 public:
+	using iterator = client_iterator<span<std::optional<client>>>;
+
+	using const_iterator = client_iterator<const span<std::optional<client>>>;
+
 	client_manager(size_t max_clients);
 
 	client_manager(const client_manager&) = delete;
@@ -94,17 +115,13 @@ public:
 
 	void flush();
 
-	void walk(std::function<void(const client&)> f) const;
-
-	void walk(std::function<void(client&)> f);
-
 	client_iterator<std::optional<client>> begin();
 
 	client_iterator<std::optional<client>> end();	
 
-	client_iterator<const std::optional<client>> cbegin() const;
+	client_iterator<const std::optional<client>> begin() const;
 
-	client_iterator<const std::optional<client>> cend() const;
+	client_iterator<const std::optional<client>> end() const;
 
 private:
 	struct scheduled_packet {

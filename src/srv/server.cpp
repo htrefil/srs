@@ -84,12 +84,12 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					cl.write(proto::CHANNEL_MESSAGES, proto::message::SPAWN_STATE, cl.cn, std::bind(write_state, _1, std::cref(*cl.info)));
 					cl.write(proto::CHANNEL_MESSAGES, std::bind(write_resume, _1, std::cref(manager)));
 					
-					manager.walk([&](const client& c) {
+					for (const auto& c : manager) {
 						if (&c == &cl)
 							return;
 
 						cl.write(proto::CHANNEL_MESSAGES, std::bind(write_init_client, _1, std::cref(c)));
-					});
+					}
 
 					logger::get().info() << cl.id() << " joined" << std::endl;
 					break;
@@ -187,9 +187,10 @@ void server::write_resume(proto::writer& writer, const client_manager& manager) 
 	using namespace std::placeholders; 
 
 	writer.write(proto::message::RESUME);
-	manager.walk([&](const client& cl) {
+
+	for (const auto& cl : manager) 
 		writer.write(cl.cn, cl.info->player_state, cl.info->frags, 0, cl.info->quad_time, std::bind(write_state, _1, *cl.info));
-	});
+
 	writer.write<int32_t>(-1);
 }
 
