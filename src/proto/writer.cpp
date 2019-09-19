@@ -56,9 +56,11 @@ void writer::write_basic(bool b) {
 }
 
 void writer::write_basic(int32_t n) {
-	if (n >= -0x80 && n <= 0x7F)  {
+	auto& u = *(uint32_t*)&n;
+
+	if (u < 0x80 || (u > 0x81 && u <= 0xFF)) {
 		write<unsigned char>((unsigned char)n);
-	} else if (n >= -0x7FFF && n <= 0x7FFF) {
+	} else if (n <= 0xFFFF) {
 		write<unsigned char>(0x80);
 		write<unsigned char>((unsigned char)n);
 		write<unsigned char>((unsigned char)(n >> 8));
@@ -67,7 +69,7 @@ void writer::write_basic(int32_t n) {
 		write<unsigned char>((unsigned char)n);
 		write<unsigned char>((unsigned char)(n >> 8));
 		write<unsigned char>((unsigned char)(n >> 16));
-		write<unsigned char>((unsigned char)(n >> 28));
+		write<unsigned char>((unsigned char)(n >> 24));
 	}
 }
 
