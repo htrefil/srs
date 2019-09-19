@@ -80,16 +80,19 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 
 					cl.info = client_info(name, model);
 
+					cl.write(proto::CHANNEL_MESSAGES, proto::message::MAP_CHANGE, "", proto::gamemode::COOP_EDIT, false);
 					cl.write(proto::CHANNEL_MESSAGES, proto::message::SET_TEAM, cl.cn, cl.info->team.c_str(), -1);
 					cl.write(proto::CHANNEL_MESSAGES, proto::message::SPAWN_STATE, cl.cn, std::bind(write_state, _1, std::cref(*cl.info)));
 					cl.write(proto::CHANNEL_MESSAGES, std::bind(write_resume, _1, std::cref(manager)));
 					
 					for (const auto& c : manager) {
 						if (&c == &cl)
-							return;
+							continue;
 
 						cl.write(proto::CHANNEL_MESSAGES, std::bind(write_init_client, _1, std::cref(c)));
 					}
+
+					manager.write(&cl, proto::CHANNEL_MESSAGES, std::bind(write_init_client, _1, std::cref(cl)));
 
 					logger::get().info() << cl.id() << " joined" << std::endl;
 					break;
