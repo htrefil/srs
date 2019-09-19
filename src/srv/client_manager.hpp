@@ -11,6 +11,7 @@
 
 namespace srv {
 
+// TODO: There must be a better way to do this.
 template<bool C, typename T>
 struct add_const_if {};
 
