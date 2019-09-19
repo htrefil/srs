@@ -9,6 +9,8 @@
 #include "../proto/items.hpp"
 #include "../logger.hpp"
 
+using namespace std::placeholders; 
+
 namespace srv {
 
 server::server(enet_uint16 port, size_t max_clients, std::string description) : manager(max_clients), description(std::move(description)) {
@@ -58,8 +60,6 @@ void server::handle_connect(client& cl) {
 }
 
 void server::handle_recv(client& cl, cspan<unsigned char> data) {
-	using namespace std::placeholders; 
-
 	proto::reader reader(data);
 	try {
 		while (!reader.ends()) {
@@ -187,8 +187,6 @@ void server::write_state(proto::writer& writer, const client_info& info) {
 }
 
 void server::write_resume(proto::writer& writer, const client_manager& manager) {
-	using namespace std::placeholders; 
-
 	writer.write(proto::message::RESUME);
 
 	for (const auto& cl : manager) 
