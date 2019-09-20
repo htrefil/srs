@@ -179,11 +179,11 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					cl.write(proto::CHANNEL_MESSAGES, proto::message::PONG, reader.read<int32_t>());
 					break;
 
-				case proto::MESSAGE_MAP_CRC: {
+				case proto::message::MAP_CRC: {
 					auto name = reader.read<std::string>();
 					auto crc = reader.read<int32_t>();
 
-					cl.write(proto::CHANNEL_MESSAGES, proto::MESSAGE_SERVER_MESSAGE, "Map CRCs are not supported on this server");
+					cl.write(proto::CHANNEL_MESSAGES, proto::message::SERVER_MESSAGE, "Map CRCs are not supported on this server");
 					break;
 				}
 
