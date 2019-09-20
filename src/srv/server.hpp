@@ -35,6 +35,8 @@ private:
 
 	static void write_resume(proto::writer& writer, const client_manager& manager, const player_state_spawned& state);
 
+	static void write_init_client(proto::writer& writer, const client& cl);
+
 	client_manager manager;
 	std::string description;
 	std::unique_ptr<class gamemode> gamemode;

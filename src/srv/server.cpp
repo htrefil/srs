@@ -86,6 +86,15 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					cl.write(proto::CHANNEL_MESSAGES, proto::message::SPAWN_STATE, cl.cn, std::bind(write_state, _1, std::cref(*cl.info), std::cref(spawn_state)));
 					cl.write(proto::CHANNEL_MESSAGES, std::bind(write_resume, _1, std::cref(manager), std::cref(spawn_state)));
 
+					for (const auto& c : manager) {
+						if (&c == &cl || !c.info)
+							continue;
+
+						cl.write(proto::CHANNEL_MESSAGES, std::bind(write_init_client, _1, std::cref(c)));
+					}
+
+					manager.write(&cl, proto::CHANNEL_MESSAGES, std::bind(write_init_client, _1, std::cref(cl)));
+
 					logger::get().info() << cl.id() << " joined" << std::endl;
 					break;
 				}
@@ -219,6 +228,10 @@ void server::write_resume(proto::writer& writer, const client_manager& manager, 
 	}
 
 	writer.write(-1);
+}
+
+void server::write_init_client(proto::writer& writer, const client& cl) {
+	writer.write(proto::message::INIT_CLIENT, cl.cn, cl.info->name.c_str(), cl.info->team.c_str(), cl.info->model);
 }
 
 }
