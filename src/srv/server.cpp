@@ -250,7 +250,7 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 				case proto::message::SOUND: {
 					auto id = reader.read<int32_t>();
 
-					if (cl.info || std::get_if<player_state_alive>(&cl.info->state) == nullptr)
+					if (!cl.info || std::get_if<player_state_alive>(&cl.info->state) == nullptr)
 						break;
 
 					manager.write_client(&cl, cl, proto::CHANNEL_MESSAGES, proto::message::SOUND, id);
