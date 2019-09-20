@@ -166,8 +166,9 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					if (!cl.info || life_sequence != cl.info->life_sequence || std::get_if<player_state_spawned>(&cl.info->state) != nullptr)
 						break;
 
-					const auto& spawn_state = gamemode->get_spawn_state();
-
+					auto spawn_state = gamemode->get_spawn_state();
+					spawn_state.weapon = weapon;
+					
 					cl.info->state = spawn_state;
 
 					manager.write_client(cl, proto::CHANNEL_MESSAGES, proto::message::CONFIRM_SPAWN, std::bind(write_state, _1, std::cref(*cl.info), std::cref(spawn_state)));
