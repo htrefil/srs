@@ -216,6 +216,16 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					auto cn = reader.read<int32_t>();
 					auto toggle = reader.read<bool>();
 
+					bool found = false;
+					for (const auto& c : manager) {
+						if (c.cn == cn && c.info && std::get_if<player_state_spectator>(&c.info->state) == nullptr) {
+							found = true;
+							break;
+						}
+					}
+
+					toggle = toggle && found;
+
 					manager.write(proto::CHANNEL_MESSAGES, proto::message::SPECTATOR, cl.cn, toggle);
 
 					if (!toggle) 
