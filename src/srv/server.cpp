@@ -223,6 +223,16 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					break;
 				}
 
+				case proto::message::CHAT_MESSAGE: {
+					auto message = reader.read<std::string>();
+
+					if (!cl.info)
+						break;
+
+					manager.write_client(&cl, cl, proto::CHANNEL_MESSAGES, proto::message::CHAT_MESSAGE, message.c_str());
+					break;
+				}
+
 				default:
 					logger::get().debug() << cl.id() << " sent an unexpected message: " << (std::underlying_type_t<proto::message>)message << std::endl;
 					return;
