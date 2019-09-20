@@ -257,6 +257,19 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					break;
 				}
 
+				case proto::message::EDIT_MODE: {
+					auto toggle = reader.read<bool>();
+
+					player_state_alive* state;
+					if (!cl.info || (state = std::get_if<player_state_alive>(&cl.info->state)) == nullptr)
+						break;
+
+					state->editing = toggle;
+
+					manager.write_client(&cl, cl, proto::CHANNEL_MESSAGES, proto::message::EDIT_MODE, toggle);
+					break;
+				}
+
 				default:
 					logger::get().debug() << cl.id() << " sent an unexpected message: " << (std::underlying_type_t<proto::message>)message << std::endl;
 					return;

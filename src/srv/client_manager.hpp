@@ -65,10 +65,6 @@ private:
 
 class client_manager {
 public:
-	using iterator = client_iterator<span<std::optional<client>>>;
-
-	using const_iterator = client_iterator<const span<std::optional<client>>>;
-
 	client_manager(size_t max_clients);
 
 	client_manager(const client_manager&) = delete;
