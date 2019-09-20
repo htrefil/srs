@@ -4,7 +4,6 @@
 #include "gamemode.hpp"
 
 namespace srv {
-
 namespace gm {
 
 class coop_edit : public gamemode {
@@ -20,6 +19,5 @@ private:
 };
 
 }
-
 }
 #endif

@@ -1,7 +1,6 @@
 #include "coop_edit.hpp"
 
 namespace srv {
-
 namespace gm {
 
 coop_edit::coop_edit() {
@@ -18,5 +17,4 @@ proto::gamemode coop_edit::get_id() const {
 }
 
 }
-
 }

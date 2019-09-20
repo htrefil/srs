@@ -5,7 +5,6 @@
 #include "../../proto/items.hpp"
 
 namespace srv {
-
 namespace gm {
 
 class gamemode {
@@ -18,7 +17,6 @@ public:
 };
 
 }
-
 }
 
 #endif
