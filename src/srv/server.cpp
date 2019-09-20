@@ -197,6 +197,32 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					break;
 				}
 
+				case proto::message::SUICIDE: {
+					if (!cl.info || std::get_if<player_state_alive>(&cl.info->state) == nullptr)
+						break;
+
+					died(cl, cl);
+					break;
+				}
+
+				case proto::message::TRY_SPAWN:
+					if (!cl.info || std::get_if<player_state_alive>(&cl.info->state) != nullptr)
+						break;
+
+					cl.write(proto::CHANNEL_MESSAGES, proto::message::SPAWN_STATE, cl.cn, std::bind(write_state, _1, std::cref(*cl.info), std::cref(gamemode->get_spawn_state())));
+					break;
+
+				case proto::message::SPECTATOR: {
+					auto cn = reader.read<int32_t>();
+					auto toggle = reader.read<bool>();
+
+					manager.write(proto::CHANNEL_MESSAGES, proto::message::SPECTATOR, cl.cn, toggle);
+
+					if (!toggle) 
+						died(cl, cl);
+					break;
+				}
+
 				default:
 					logger::get().debug() << cl.id() << " sent an unexpected message: " << (std::underlying_type_t<proto::message>)message << std::endl;
 					return;
@@ -217,6 +243,12 @@ void server::handle_disconnect(client& cl) {
 	logger::get().info() << cl.id() << " disconnected" << std::endl;;
 
 	manager.remove(cl);
+}
+
+void server::died(client& cl, const client& attacker) {
+	cl.info->state = player_state_dead();
+					
+	manager.write(proto::CHANNEL_MESSAGES, proto::message::DIED, cl.cn, attacker.cn, attacker.info->frags, 0);
 }
 
 void server::write_state(proto::writer& writer, const client_info& info, const player_state_alive& state) {

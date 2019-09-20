@@ -31,6 +31,8 @@ private:
 
 	void handle_disconnect(client& cl);
 
+	void died(client& cl, const client& attacker);
+
 	static void write_state(proto::writer& writer, const client_info& info, const player_state_alive& state);
 
 	static void write_resume(proto::writer& writer, const client_manager& manager, const player_state_alive& state);
