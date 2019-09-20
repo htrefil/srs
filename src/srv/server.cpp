@@ -163,7 +163,7 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					auto life_sequence = reader.read<int32_t>();
 					auto weapon = reader.read<proto::weapon>();
 
-					if (!cl.info || life_sequence != cl.info->life_sequence || std::get_if<player_state_spawned>(&cl.info->state) != nullptr)
+					if (!cl.info || life_sequence != cl.info->life_sequence || std::get_if<player_state_alive>(&cl.info->state) != nullptr)
 						break;
 
 					auto spawn_state = gamemode->get_spawn_state();
@@ -219,20 +219,20 @@ void server::handle_disconnect(client& cl) {
 	manager.remove(cl);
 }
 
-void server::write_state(proto::writer& writer, const client_info& info, const player_state_spawned& state) {
+void server::write_state(proto::writer& writer, const client_info& info, const player_state_alive& state) {
 	writer.write(info.life_sequence, state.health, state.max_health, state.armor_health, state.armor, state.weapon);
 	for (const auto& weapon : state.weapons) 
 		writer.write(weapon.second);
 }
 
-void server::write_resume(proto::writer& writer, const client_manager& manager, const player_state_spawned& state) {
+void server::write_resume(proto::writer& writer, const client_manager& manager, const player_state_alive& state) {
 	writer.write(proto::message::RESUME);
 
 	for (const auto& cl : manager) {
 		if (!cl.info)
 			continue;
 
-		auto pstate = std::get_if<player_state_spawned>(&cl.info->state);
+		auto pstate = std::get_if<player_state_alive>(&cl.info->state);
 
 		proto::player_state istate;
 		if (pstate != nullptr) {

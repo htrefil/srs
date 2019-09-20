@@ -9,7 +9,7 @@ gamemode_coop_edit::gamemode_coop_edit() {
 	spawn_state.weapons[proto::weapon::PISTOL] = 40;
 }
 
-const player_state_spawned& gamemode_coop_edit::get_spawn_state() const {
+const player_state_alive& gamemode_coop_edit::get_spawn_state() const {
 	return spawn_state;
 }
 

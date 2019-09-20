@@ -8,9 +8,9 @@
 
 namespace srv {
 
-class player_state_spawned {
+class player_state_alive {
 public:
-	player_state_spawned();
+	player_state_alive();
 	
 	bool editing;
 	proto::armor armor;
@@ -26,7 +26,7 @@ class player_state_dead {};
 
 class player_state_spectator {};
 
-using player_state = std::variant<player_state_spawned, player_state_dead, player_state_spectator>;
+using player_state = std::variant<player_state_alive, player_state_dead, player_state_spectator>;
 
 }
 
