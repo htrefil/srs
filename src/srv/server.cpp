@@ -168,7 +168,7 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 
 					auto spawn_state = gamemode->get_spawn_state();
 					spawn_state.weapon = weapon;
-					
+
 					cl.info->state = spawn_state;
 
 					manager.write_client(cl, proto::CHANNEL_MESSAGES, proto::message::CONFIRM_SPAWN, std::bind(write_state, _1, std::cref(*cl.info), std::cref(spawn_state)));
@@ -178,6 +178,14 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 				case proto::message::PING:
 					cl.write(proto::CHANNEL_MESSAGES, proto::message::PONG, reader.read<int32_t>());
 					break;
+
+				case proto::MESSAGE_MAP_CRC: {
+					auto name = reader.read<std::string>();
+					auto crc = reader.read<int32_t>();
+
+					cl.write(proto::CHANNEL_MESSAGES, proto::MESSAGE_SERVER_MESSAGE, "Map CRCs are not supported on this server");
+					break;
+				}
 
 				case proto::message::CLIENT_PING: {
 					auto ping = reader.read<int32_t>();
