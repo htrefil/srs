@@ -10,6 +10,7 @@
 
 #include "cpptoml/cpptoml.h"
 #include "srv/server.hpp"
+#include "srv/gm/coop_edit.hpp"
 #include "logger.hpp"
 
 template<typename T>
@@ -55,7 +56,7 @@ int main(int argc, char** argv) {
 			return EXIT_FAILURE;
 		}
 
-		srv::server server(port, max_clients, description, std::unique_ptr<srv::gamemode>(new srv::gamemode_coop_edit));
+		srv::server server(port, max_clients, description, std::unique_ptr<srv::gm::gamemode>(new srv::gm::coop_edit));
 
 		logger::get().info() << "Listening on port " << port << std::endl;
 

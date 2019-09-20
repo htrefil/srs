@@ -4,7 +4,7 @@ CC = gcc
 CFLAGS = -Wall -pedantic -Werror -std=c11
 LDFLAGS = -lenet
 sourcedir = src
-sources = $(wildcard $(sourcedir)/*.cpp) $(wildcard $(sourcedir)/srv/*.cpp) $(wildcard $(sourcedir)/proto/*.cpp)
+sources = $(wildcard $(sourcedir)/*.cpp) $(wildcard $(sourcedir)/srv/*.cpp) $(wildcard $(sourcedir)/srv/gm/*.cpp) $(wildcard $(sourcedir)/proto/*.cpp)
 csources = $(wildcard $(sourcedir)/utf8/*.c)
 objs = $(patsubst %.cpp,%.o,$(sources)) $(patsubst %.c,%.o,$(csources)) 
 

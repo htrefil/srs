@@ -13,7 +13,7 @@ using namespace std::placeholders;
 
 namespace srv {
 
-server::server(enet_uint16 port, size_t max_clients, std::string description, std::unique_ptr<class gamemode> gamemode) : manager(max_clients), description(description), gamemode(std::move(gamemode)) {
+server::server(enet_uint16 port, size_t max_clients, std::string description, std::unique_ptr<gm::gamemode> gamemode) : manager(max_clients), description(description), gamemode(std::move(gamemode)) {
 	ENetAddress address;
 	address.port = port;
 	address.host = ENET_HOST_ANY;

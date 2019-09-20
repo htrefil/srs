@@ -8,7 +8,7 @@
 #include "player_state.hpp"
 #include "client.hpp"
 #include "client_manager.hpp"
-#include "gamemode.hpp"
+#include "gm/gamemode.hpp"
 #include "../span.hpp"
 #include "../proto/writer.hpp"
 
@@ -16,7 +16,7 @@ namespace srv {
 
 class server {
 public:
-	server(enet_uint16 port, size_t max_clients, std::string description, std::unique_ptr<class gamemode> gamemode);
+	server(enet_uint16 port, size_t max_clients, std::string description, std::unique_ptr<gm::gamemode> gamemode);
 
 	server(const server&) = delete;
 
@@ -39,7 +39,7 @@ private:
 
 	client_manager manager;
 	std::string description;
-	std::unique_ptr<class gamemode> gamemode;
+	std::unique_ptr<gm::gamemode> gamemode;
 	ENetHost* host;
 };
 
