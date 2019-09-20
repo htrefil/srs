@@ -260,6 +260,11 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 				case proto::message::EDIT_MODE: {
 					auto toggle = reader.read<bool>();
 
+					if (gamemode->get_id() != proto::gamemode::COOP_EDIT) {
+						cl.disconnect(proto::disconnect_reason::MESSAGE_ERROR);
+						return;
+					}
+
 					player_state_alive* state;
 					if (!cl.info || (state = std::get_if<player_state_alive>(&cl.info->state)) == nullptr)
 						break;
