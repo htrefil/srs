@@ -124,6 +124,8 @@ public:
 
 	client_iterator<const std::optional<client>> end() const;
 
+	const client* find(int32_t cn) const;
+
 private:
 	struct scheduled_packet {
 		const client* exclude;

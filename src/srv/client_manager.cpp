@@ -97,4 +97,11 @@ void client_manager::broadcast(const client* exclude, enet_uint8 channel, ENetPa
 		throw std::runtime_error("Failed to create packet");
 }
 
+const client* client_manager::find(int32_t cn) const {
+	if (cn < 0 || (size_t)cn >= clients.size() || !clients[(size_t)cn])
+		return nullptr;
+
+	return &*clients[(size_t)cn];
+}
+
 }

@@ -216,20 +216,24 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					auto cn = reader.read<int32_t>();
 					auto toggle = reader.read<bool>();
 
-					bool found = false;
-					for (const auto& c : manager) {
-						if (c.cn == cn && c.info && std::get_if<player_state_spectator>(&c.info->state) == nullptr) {
-							found = true;
-							break;
-						}
-					}
-
-					toggle = toggle && found;
+					auto c = manager.find(cn);
+					toggle &= c != nullptr && c->info && std::get_if<player_state_spectator>(&c->info->state) == nullptr;
 
 					manager.write(proto::CHANNEL_MESSAGES, proto::message::SPECTATOR, cl.cn, toggle);
 
 					if (!toggle) 
 						died(cl, cl);
+					break;
+				}
+
+				case proto::message::CHANGE_WEAPON: {
+					auto weapon = reader.read<proto::weapon>();
+
+					const player_state_alive* state;
+					if (!cl.info || (state = std::get_if<player_state_alive>(&cl.info->state)) == nullptr || state->editing)
+						break;
+
+					manager.write_client(&cl, cl, proto::CHANNEL_MESSAGES, proto::message::CHANGE_WEAPON, weapon);
 					break;
 				}
 
