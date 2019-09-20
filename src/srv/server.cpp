@@ -174,6 +174,19 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					break;
 				}
 
+				case proto::message::PING:
+					cl.write(proto::CHANNEL_MESSAGES, proto::message::PONG, reader.read<int32_t>());
+					break;
+
+				case proto::message::CLIENT_PING: {
+					auto ping = reader.read<int32_t>();
+
+					if (cl.info)
+						manager.write_client(cl, proto::CHANNEL_MESSAGES, proto::message::CLIENT_PING, ping);
+
+					break;
+				}
+
 				default:
 					logger::get().debug() << cl.id() << " sent an unexpected message: " << (std::underlying_type_t<proto::message>)message << std::endl;
 					return;
