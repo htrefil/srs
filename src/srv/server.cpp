@@ -171,7 +171,9 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 
 					cl.info->state = spawn_state;
 
-					manager.write_client(cl, proto::CHANNEL_MESSAGES, proto::message::CONFIRM_SPAWN, std::bind(write_state, _1, std::cref(*cl.info), std::cref(spawn_state)));
+					manager.write_client(&cl, cl, proto::CHANNEL_MESSAGES, proto::message::CONFIRM_SPAWN, std::bind(write_state, _1, std::cref(*cl.info), std::cref(spawn_state)));
+
+					logger::get().debug() << cl.id() << " spawned" << std::endl;
 					break;
 				}
 
@@ -192,7 +194,6 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 
 					if (cl.info)
 						manager.write_client(cl, proto::CHANNEL_MESSAGES, proto::message::CLIENT_PING, ping);
-
 					break;
 				}
 
@@ -207,7 +208,6 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 		logger::get().debug() << cl.id() << " read error: " << e.what() << std::endl;
 		return;
 	}
-
 }
 
 void server::handle_disconnect(client& cl) {
