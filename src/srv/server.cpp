@@ -247,6 +247,16 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					break;
 				}
 
+				case proto::message::SOUND: {
+					auto id = reader.read<int32_t>();
+
+					if (cl.info && std::get_if<player_state_alive>(&cl.info->state) != nullptr)
+						break;
+
+					manager.write_client(&cl, cl, proto::CHANNEL_MESSAGES, proto::message::SOUND, id);
+					break;
+				}
+
 				default:
 					logger::get().debug() << cl.id() << " sent an unexpected message: " << (std::underlying_type_t<proto::message>)message << std::endl;
 					return;
