@@ -3,10 +3,12 @@
 #include <enet/enet.h>
 #include <string>
 #include <cstdlib>
+#include <memory>
 
 #include "player_state.hpp"
 #include "client.hpp"
 #include "client_manager.hpp"
+#include "gamemode.hpp"
 #include "../span.hpp"
 #include "../proto/writer.hpp"
 
@@ -14,7 +16,7 @@ namespace srv {
 
 class server {
 public:
-	server(enet_uint16 port, size_t max_clients, std::string description);
+	server(enet_uint16 port, size_t max_clients, std::string description, std::unique_ptr<class gamemode> gamemode);
 
 	server(const server&) = delete;
 
@@ -29,14 +31,13 @@ private:
 
 	void handle_disconnect(client& cl);
 
-	static void write_state(proto::writer& writer, const player_state_spawned& state);
+	static void write_state(proto::writer& writer, const client_info& info, const player_state_spawned& state);
 
-	static void write_resume(proto::writer& writer, const client_manager& manager);
-
-	static void write_init_client(proto::writer& writer, const client& cl);
+	static void write_resume(proto::writer& writer, const client_manager& manager, const player_state_spawned& state);
 
 	client_manager manager;
 	std::string description;
+	std::unique_ptr<class gamemode> gamemode;
 	ENetHost* host;
 };
 

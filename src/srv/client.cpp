@@ -9,7 +9,7 @@
 
 namespace srv {
 
-client_info::client_info(std::string name, std::string team, proto::model model, player_state state) : name(name), team(team), model(model), state(state), frags(0) {}
+client_info::client_info(std::string name, std::string team, proto::model model, player_state state) : name(name), team(team), model(model), state(state), life_sequence(0), frags(0) {}
 
 client::client(ENetPeer* peer, int32_t cn) : peer(peer), cn(cn), address{ 0 } {
 	if (enet_address_get_host_ip(&peer->address, address, sizeof(address)) < 0)

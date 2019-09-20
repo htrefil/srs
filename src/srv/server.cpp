@@ -13,7 +13,7 @@ using namespace std::placeholders;
 
 namespace srv {
 
-server::server(enet_uint16 port, size_t max_clients, std::string description) : manager(max_clients), description(std::move(description)) {
+server::server(enet_uint16 port, size_t max_clients, std::string description, std::unique_ptr<class gamemode> gamemode) : manager(max_clients), description(description), gamemode(std::move(gamemode)) {
 	ENetAddress address;
 	address.port = port;
 	address.host = ENET_HOST_ANY;
@@ -73,28 +73,18 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					auto auth_domain = reader.read<std::string>();
 					auto auth_name = reader.read<std::string>();
 
-					if (cl.info || std::get_if<player_state_spawned>(&cl.info->state) != nullptr || !password.empty() || !auth_domain.empty() || !auth_name.empty()) {
+					if (cl.info || !password.empty() || !auth_domain.empty() || !auth_name.empty()) {
 						cl.disconnect(proto::disconnect_reason::MESSAGE_ERROR);
 						return;
 					}
 
-					cl.info = client_info(name, "", model, player_state_spawned());
+					cl.info = client_info(name, "", model, player_state_dead());
 
-					const auto& player_state = std::get<player_state_spawned>(cl.info->state);
+					const auto& spawn_state = gamemode->get_spawn_state();
 
-					cl.write(proto::CHANNEL_MESSAGES, proto::message::MAP_CHANGE, "", proto::gamemode::COOP_EDIT, false);
-					cl.write(proto::CHANNEL_MESSAGES, proto::message::SET_TEAM, cl.cn, cl.info->team.c_str(), -1);
-					cl.write(proto::CHANNEL_MESSAGES, proto::message::SPAWN_STATE, cl.cn, std::bind(write_state, _1, std::cref(player_state)));
-					cl.write(proto::CHANNEL_MESSAGES, std::bind(write_resume, _1, std::cref(manager)));
-					
-					for (const auto& c : manager) {
-						if (&c == &cl || !c.info)
-							continue;
-
-						cl.write(proto::CHANNEL_MESSAGES, std::bind(write_init_client, _1, std::cref(c)));
-					}
-
-					manager.write(&cl, proto::CHANNEL_MESSAGES, std::bind(write_init_client, _1, std::cref(cl)));
+					cl.write(proto::CHANNEL_MESSAGES, proto::message::MAP_CHANGE, "", gamemode->get_id(), false);
+					cl.write(proto::CHANNEL_MESSAGES, proto::message::SPAWN_STATE, cl.cn, std::bind(write_state, _1, std::cref(*cl.info), std::cref(spawn_state)));
+					cl.write(proto::CHANNEL_MESSAGES, std::bind(write_resume, _1, std::cref(manager), std::cref(spawn_state)));
 
 					logger::get().info() << cl.id() << " joined" << std::endl;
 					break;
@@ -189,36 +179,37 @@ void server::handle_disconnect(client& cl) {
 	manager.remove(cl);
 }
 
-void server::write_state(proto::writer& writer, const player_state_spawned& state) {
-	writer.write(state.life_sequence, state.health, state.max_health, state.armor_health, state.armor, state.weapon);
+void server::write_state(proto::writer& writer, const client_info& info, const player_state_spawned& state) {
+	writer.write(info.life_sequence, state.health, state.max_health, state.armor_health, state.armor, state.weapon);
 	for (const auto& weapon : state.weapons) 
 		writer.write(weapon.second);
 }
 
-void server::write_resume(proto::writer& writer, const client_manager& manager) {
-	static const player_state_spawned DUMMY_STATE;
-
+void server::write_resume(proto::writer& writer, const client_manager& manager, const player_state_spawned& state) {
 	writer.write(proto::message::RESUME);
 
 	for (const auto& cl : manager) {
 		if (!cl.info)
 			continue;
 
-		auto player_state = proto::player_state::ALIVE;
-		auto state = std::get_if<player_state_spawned>(&cl.info->state);
-		if (state == nullptr) {
-			state = &DUMMY_STATE;
-			player_state = std::get_if<player_state_spectator>(&cl.info->state) == nullptr ? proto::player_state::DEAD : proto::player_state::SPECTATOR;
-		}
+		auto pstate = std::get_if<player_state_spawned>(&cl.info->state);
 
-		writer.write(cl.cn, player_state, cl.info->frags, 0, state->quad_time, std::bind(write_state, _1, std::cref(*state)));
+		proto::player_state istate;
+		if (pstate != nullptr) {
+			istate = pstate->editing ? proto::player_state::EDITING : proto::player_state::ALIVE;
+		} else {
+			if (std::get_if<player_state_dead>(&cl.info->state)) 
+				istate = proto::player_state::DEAD;
+			else
+				istate = proto::player_state::SPECTATOR;
+
+			pstate = &state;
+		}
+		
+		writer.write(cl.cn, istate, cl.info->frags, 0, pstate->quad_time, std::bind(write_state, _1, std::cref(*cl.info), std::cref(*pstate)));
 	}
 
 	writer.write(-1);
-}
-
-void server::write_init_client(proto::writer& writer, const client& cl) {
-	writer.write(proto::message::INIT_CLIENT, cl.cn, cl.info->name.c_str(), cl.info->team.c_str(), cl.info->model);
 }
 
 }

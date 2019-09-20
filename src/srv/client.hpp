@@ -23,6 +23,7 @@ public:
 	std::string team;
 	proto::model model;
 	player_state state;
+	int32_t life_sequence;
 	int32_t frags;
 };
 

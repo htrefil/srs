@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
 			return EXIT_FAILURE;
 		}
 
-		srv::server server(port, max_clients, description);
+		srv::server server(port, max_clients, description, std::unique_ptr<srv::gamemode>(new srv::gamemode_coop_edit));
 
 		logger::get().info() << "Listening on port " << port << std::endl;
 

@@ -12,13 +12,13 @@ class player_state_spawned {
 public:
 	player_state_spawned();
 	
+	bool editing;
 	proto::armor armor;
 	int32_t armor_health;
 	proto::weapon weapon;
 	std::map<proto::weapon, int32_t> weapons;
 	int32_t health;
 	int32_t max_health;
-	int32_t life_sequence;
 	int32_t quad_time;
 };
 
