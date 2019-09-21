@@ -22,15 +22,15 @@ static T must_get(cpptoml::table& table, const char* name) {
 	return *value;
 }
 
-static std::optional<bool> parse_loglevel(const char* level) {
-	if (strcmp(level, "none") == 0)
-		return {};
+static logger::loglevel parse_loglevel(const char* level) {
+	if (strcmp(level, "error") == 0)
+		return logger::loglevel::ERROR;
 
 	if (strcmp(level, "info") == 0)
-		return false;
+		return logger::loglevel::INFO;
 
 	if (strcmp(level, "debug") == 0)
-		return true;
+		return logger::loglevel::DEBUG;
 
 	throw std::runtime_error("Config: Invalid loglevel value \"" + std::string(level) + "\"");
 }

@@ -7,11 +7,17 @@
 
 class logger : public singleton<logger> {
 public:
+	enum class loglevel {
+		ERROR,
+		INFO,
+		DEBUG,
+	};
+
 	logger() = default;
 
 	logger(const logger&) = delete;
 
-	void init(std::optional<bool> level);
+	void init(loglevel level);
 
 	std::ostream& error();
 
@@ -22,7 +28,7 @@ public:
 private:
 	std::ostream& log();
 
-	std::optional<bool> level;
+	loglevel level;
 };
 
 #endif
