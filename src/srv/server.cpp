@@ -153,7 +153,7 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 						(float)(std::clamp(direction / 360, 0, 180) - 90) * RAD * (float)magnitude
 					);
 
-					if (cl.info) 
+					if (cl.info && std::get_if<player_state_alive>(&cl.info->state)) 
 						manager.write(&cl, proto::CHANNEL_POSITIONS, proto::message::POSITION, cl.cn, reader.span_from(start, reader.get_offset()));
 
 					break;
