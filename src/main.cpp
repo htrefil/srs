@@ -1,75 +1,54 @@
 #include <iostream>
 #include <cstdlib>
-#include <exception>
 #include <enet/enet.h>
-#include <optional>
-#include <cstring>
-#include <memory>
-#include <functional>
-#include <variant>
 
 #include "cpptoml/cpptoml.h"
-#include "srv/server.hpp"
-#include "srv/gm/coop_edit.hpp"
 #include "logger.hpp"
 
-template<typename T>
-static T must_get(cpptoml::table& table, const char* name) {
-	auto value = table.get_qualified_as<T>(name);
-	if (!value)
-		throw std::runtime_error("Config: Value " + std::string(name) + " is missing or has an invalid type");
-
-	return *value;
-}
-
-static logger::loglevel parse_loglevel(const char* level) {
-	if (strcmp(level, "error") == 0)
-		return logger::loglevel::ERROR;
-
-	if (strcmp(level, "info") == 0)
-		return logger::loglevel::INFO;
-
-	if (strcmp(level, "debug") == 0)
-		return logger::loglevel::DEBUG;
-
-	throw std::runtime_error("Config: Invalid loglevel value \"" + std::string(level) + "\"");
-}
+static constexpr auto LOGLEVEL_ERROR = "error"; 
+static constexpr auto LOGLEVEL_INFO = "info";
+static constexpr auto LOGLEVEL_DEBUG = "debug";
 
 int main(int argc, char** argv) {
 	if (argc != 2) {
-		std::cout << "Usage: srs <config path>" << std::endl;
+		std::cout << "Usage: " << argv[1] << " <config path>" << std::endl;
 		return EXIT_FAILURE;
 	}
 
 	try {
 		auto config = cpptoml::parse_file(argv[1]);
 
-		auto port = must_get<enet_uint16>(*config, "server.port");
-		auto max_clients = must_get<size_t>(*config, "server.max-clients");
-		auto description = must_get<std::string>(*config, "server.description");
-		auto level = parse_loglevel(must_get<std::string>(*config, "server.loglevel").c_str());
+		auto port = config->get_qualified_as<enet_uint16>("server.port").value();
+		auto max_clients = config->get_qualified_as<size_t>("server.max-clients").value();
+		auto description = config->get_qualified_as<std::string>("server.description").value();
+		auto loglevel = config->get_qualified_as<std::string>("server.loglevel").value();
+
+		logger::loglevel level;
+		if (loglevel == LOGLEVEL_ERROR) {
+			level = logger::loglevel::ERROR;
+		} else if (loglevel == LOGLEVEL_INFO) {
+			level = logger::loglevel::INFO;
+		} else if (loglevel == LOGLEVEL_DEBUG) {
+			level = logger::loglevel::DEBUG;
+		} else {
+			logger::get().error() << "Config: Invalid loglevel value: \"" << loglevel << "\"" << std::endl;
+			return EXIT_FAILURE;
+		}
 
 		logger::get().init(level);
 
 		if (enet_initialize() < 0) {
-			logger::get().error() << "Error: Failed to initialize ENet" << std::endl;
+			logger::get().error() << "Failed to initialize ENet" << std::endl;
 			return EXIT_FAILURE;
 		}
 
-		srv::server server(port, max_clients, description, std::unique_ptr<srv::gm::gamemode>(new srv::gm::coop_edit));
 
-		logger::get().info() << "Listening on port " << port << std::endl;
-
-		while (true)
-			server.process();
-	} 
-	catch (const cpptoml::parse_exception& e) {
-		logger::get().error() << "Config: " << e.what() << std::endl;
 	}
-	catch (const std::exception& e) {
+	catch (const std::bad_optional_access&) {
+		logger::get().error() << "Config: A value is missing or has an invalid type" << std::endl;
+	} catch (const std::exception& e) {
 		logger::get().error() << e.what() << std::endl;
 	}
-	
+
 	return EXIT_FAILURE;
 }
-

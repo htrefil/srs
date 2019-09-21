@@ -16,6 +16,8 @@ static std::ostream& nop_stream() {
 	return stream;
 }
 
+logger::logger() : level(loglevel::INFO) {}
+
 void logger::init(loglevel level) {
 	this->level = level;
 }

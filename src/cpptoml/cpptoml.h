@@ -21,6 +21,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <optional>
 
 #if __cplusplus > 201103L
 #define CPPTOML_DEPRECATED(reason) [[deprecated(reason)]]
@@ -381,13 +382,13 @@ class table_array;
 template <class T>
 struct array_of_trait
 {
-    using return_type = option<std::vector<T>>;
+    using return_type = std::optional<std::vector<T>>;
 };
 
 template <>
 struct array_of_trait<array>
 {
-    using return_type = option<std::vector<std::shared_ptr<array>>>;
+    using return_type = std::optional<std::vector<std::shared_ptr<array>>>;
 };
 
 template <class T>
@@ -852,7 +853,7 @@ class array : public base
     }
 
     /**
-     * Obtains a option<vector<T>>. The option will be empty if the array
+     * Obtains a std::optional<vector<T>>. The option will be empty if the array
      * contains values that are not of type T.
      */
     template <class T>
@@ -1041,7 +1042,7 @@ inline std::shared_ptr<array> make_element<array>()
 } // namespace detail
 
 /**
- * Obtains a option<vector<T>>. The option will be empty if the array
+ * Obtains a std::optional<vector<T>>. The option will be empty if the array
  * contains values that are not of type T.
  */
 template <>
@@ -1218,7 +1219,7 @@ inline std::shared_ptr<table_array> make_element<table_array>()
 template <class T>
 typename std::enable_if<!std::is_floating_point<T>::value
                             && std::is_signed<T>::value,
-                        option<T>>::type
+                        std::optional<T>>::type
 get_impl(const std::shared_ptr<base>& elem)
 {
     if (auto v = elem->as<int64_t>())
@@ -1242,7 +1243,7 @@ get_impl(const std::shared_ptr<base>& elem)
 template <class T>
 typename std::enable_if<!std::is_same<T, bool>::value
                             && std::is_unsigned<T>::value,
-                        option<T>>::type
+                        std::optional<T>>::type
 get_impl(const std::shared_ptr<base>& elem)
 {
     if (auto v = elem->as<int64_t>())
@@ -1265,7 +1266,7 @@ get_impl(const std::shared_ptr<base>& elem)
 template <class T>
 typename std::enable_if<!std::is_integral<T>::value
                             || std::is_same<T, bool>::value,
-                        option<T>>::type
+                        std::optional<T>>::type
 get_impl(const std::shared_ptr<base>& elem)
 {
     if (auto v = elem->as<T>())
@@ -1438,7 +1439,7 @@ class table : public base
      * to the template parameter from a given key.
      */
     template <class T>
-    option<T> get_as(const std::string& key) const
+    std::optional<T> get_as(const std::string& key) const
     {
         try
         {
@@ -1456,7 +1457,7 @@ class table : public base
      * keys".
      */
     template <class T>
-    option<T> get_qualified_as(const std::string& key) const
+    std::optional<T> get_qualified_as(const std::string& key) const
     {
         try
         {
@@ -3176,7 +3177,7 @@ class parser
         return true;
     }
 
-    option<parse_type> date_type(const std::string::iterator& it,
+    std::optional<parse_type> date_type(const std::string::iterator& it,
                                  const std::string::iterator& end)
     {
         auto date_end = find_end_of_date(it, end);

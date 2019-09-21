@@ -13,7 +13,7 @@ using namespace std::placeholders;
 
 namespace srv {
 
-server::server(enet_uint16 port, size_t max_clients, std::string description, std::unique_ptr<gm::gamemode> gamemode) : manager(max_clients), description(description), gamemode(std::move(gamemode)) {
+server::server(enet_uint16 port, size_t max_clients, std::string description, class gamemode gamemode) : manager(max_clients), description(description), gamemode(std::move(gamemode)) {
 	ENetAddress address;
 	address.port = port;
 	address.host = ENET_HOST_ANY;
@@ -80,9 +80,9 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 
 					cl.info = client_info(name, "", model, player_state_dead());
 
-					const auto& spawn_state = gamemode->get_spawn_state();
+					const auto& spawn_state = gamemode.get_spawn_state();
 
-					cl.write(proto::CHANNEL_MESSAGES, proto::message::MAP_CHANGE, "", gamemode->get_id(), false);
+					cl.write(proto::CHANNEL_MESSAGES, proto::message::MAP_CHANGE, "", gamemode.get_id(), false);
 					cl.write(proto::CHANNEL_MESSAGES, proto::message::SPAWN_STATE, cl.cn, std::bind(write_state, _1, std::cref(*cl.info), std::cref(spawn_state)));
 					cl.write(proto::CHANNEL_MESSAGES, std::bind(write_resume, _1, std::cref(manager), std::cref(spawn_state)));
 
@@ -166,7 +166,7 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					if (!cl.info || life_sequence != cl.info->life_sequence || std::get_if<player_state_alive>(&cl.info->state) != nullptr)
 						break;
 
-					auto spawn_state = gamemode->get_spawn_state();
+					auto spawn_state = gamemode.get_spawn_state();
 					spawn_state.weapon = weapon;
 
 					cl.info->state = spawn_state;
@@ -209,7 +209,7 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 					if (!cl.info || std::get_if<player_state_alive>(&cl.info->state) != nullptr)
 						break;
 
-					cl.write(proto::CHANNEL_MESSAGES, proto::message::SPAWN_STATE, cl.cn, std::bind(write_state, _1, std::cref(*cl.info), std::cref(gamemode->get_spawn_state())));
+					cl.write(proto::CHANNEL_MESSAGES, proto::message::SPAWN_STATE, cl.cn, std::bind(write_state, _1, std::cref(*cl.info), std::cref(gamemode.get_spawn_state())));
 					break;
 
 				case proto::message::SPECTATOR: {
@@ -260,7 +260,7 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 				case proto::message::EDIT_MODE: {
 					auto toggle = reader.read<bool>();
 
-					if (gamemode->get_id() != proto::gamemode::COOP_EDIT) {
+					if (gamemode.get_id() != proto::gamemode::COOP_EDIT) {
 						cl.disconnect(proto::disconnect_reason::MESSAGE_ERROR);
 						return;
 					}

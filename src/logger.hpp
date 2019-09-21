@@ -13,7 +13,7 @@ public:
 		DEBUG,
 	};
 
-	logger() = default;
+	logger();
 
 	logger(const logger&) = delete;
 
