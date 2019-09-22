@@ -1,6 +1,6 @@
 CXX = g++
-CXXFLAGS = -Wall -pedantic -Werror -std=c++17 -Wno-unused-variable -g -Wno-unused-but-set-variable -Ilib/cpptoml -Ilib/utf8
-LDFLAGS = -lenet -Llib/utf8 -lutf8
+CXXFLAGS = -Wall -pedantic -Werror -std=c++17 -Wno-unused-variable -g -Wno-unused-but-set-variable -Ilib/cpptoml -Ilib/utf8 -Ilib/lua/src
+LDFLAGS = -lenet -Llib/utf8 -Llib/lua/src -lutf8 -llua
 LD = g++
 builddir = build
 srcdir = src
@@ -11,7 +11,7 @@ objs = $(patsubst $(srcdir)/%.cpp,$(builddir)/%.o,$(sources))
 
 all: $(bin)
 
-$(bin): objs utf8 $(bindir) 
+$(bin): objs utf8 lua $(bindir) 
 	$(LD) -o $@ $(objs) $(LDFLAGS) 
 
 objs: $(builddir) $(objs)
@@ -31,7 +31,11 @@ utf8:
 
 clean:
 	$(MAKE) -C lib/utf8 clean
+	$(MAKE) -C lib/lua/src clean
 	rm -rf build/*
 	rm -rf bin/*
 
-.PHONY: all utf8 clean
+lua:
+	$(MAKE) -C lib/lua/src a
+
+.PHONY: all utf8 lua clean
