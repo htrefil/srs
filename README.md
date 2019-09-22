@@ -10,4 +10,4 @@ Everything. At it's current state, the server does nothing at all, only accepts 
 
 ## Third party libraries
 - [cpptoml](https://github.com/skystrife/cpptoml/) Copyright (c) 2014 Chase Geigle
-
+- [Lua](https://www.lua.org) Copyright © 1994–2019 Lua.org, PUC-Rio
