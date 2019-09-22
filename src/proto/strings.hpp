@@ -1,8 +1,7 @@
 #ifndef PROTO_STRINGS_HPP
 #define PROTO_STRINGS_HPP
 #include <optional>
-
-#include "../utf8/utf8.h"
+#include <utf8.h>
 
 namespace proto {
 

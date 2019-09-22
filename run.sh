@@ -2,4 +2,4 @@
 
 set -e
 make -j16
-./srs config.toml
+./bin/srs config.toml

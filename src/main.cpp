@@ -1,8 +1,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <enet/enet.h>
+#include <cpptoml.h>
 
-#include "cpptoml/cpptoml.h"
 #include "logger.hpp"
 
 static constexpr auto LOGLEVEL_ERROR = "error"; 

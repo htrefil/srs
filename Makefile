@@ -1,15 +1,37 @@
 CXX = g++
-CXXFLAGS = -Wall -pedantic -Werror -std=c++17 -Wno-unused-variable -g -Wno-unused-but-set-variable
-CC = gcc
-CFLAGS = -Wall -pedantic -Werror -std=c11
-LDFLAGS = -lenet
-sourcedir = src
-sources = $(wildcard $(sourcedir)/*.cpp) $(wildcard $(sourcedir)/srv/*.cpp) $(wildcard $(sourcedir)/srv/gm/*.cpp) $(wildcard $(sourcedir)/proto/*.cpp)
-csources = $(wildcard $(sourcedir)/utf8/*.c)
-objs = $(patsubst %.cpp,%.o,$(sources)) $(patsubst %.c,%.o,$(csources)) 
+CXXFLAGS = -Wall -pedantic -Werror -std=c++17 -Wno-unused-variable -g -Wno-unused-but-set-variable -Ilib/cpptoml -Ilib/utf8
+LDFLAGS = -lenet -Llib/utf8 -lutf8
+LD = g++
+builddir = build
+srcdir = src
+bindir = bin
+bin = $(bindir)/srs
+sources = $(wildcard $(srcdir)/*.cpp $(srcdir)/srv/*.cpp $(srcdir)/proto/*.cpp)
+objs = $(patsubst $(srcdir)/%.cpp,$(builddir)/%.o,$(sources))
 
-srs: $(objs)
-	$(CXX) -o $@ $^ $(LDFLAGS)
+all: $(bin)
+
+$(bin): objs utf8 $(bindir) 
+	$(LD) -o $@ $(objs) $(LDFLAGS) 
+
+objs: $(builddir) $(objs)
+
+$(objs): $(builddir)/%.o: $(srcdir)/%.cpp 
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(builddir):
+	mkdir -p $(builddir)
+
+$(bindir):
+	mkdir -p $(bindir)
+
+utf8:
+	$(MAKE) -C lib/utf8 all
 
 clean:
-	rm -rf $(objs) srs
+	$(MAKE) -C lib/utf8 clean
+	rm -rf build/*
+	rm -rf bin/*
+
+.PHONY: all utf8 clean
