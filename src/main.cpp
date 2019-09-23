@@ -4,6 +4,7 @@
 #include <cpptoml.h>
 
 #include "logger.hpp"
+#include "srv/server.hpp"
 
 static constexpr auto LOGLEVEL_ERROR = "error"; 
 static constexpr auto LOGLEVEL_INFO = "info";
@@ -21,6 +22,7 @@ int main(int argc, char** argv) {
 		auto port = config->get_qualified_as<enet_uint16>("server.port").value();
 		auto max_clients = config->get_qualified_as<size_t>("server.max-clients").value();
 		auto description = config->get_qualified_as<std::string>("server.description").value();
+		auto gamemode = config->get_qualified_as<std::string>("server.gamemode").value();
 		auto loglevel = config->get_qualified_as<std::string>("server.loglevel").value();
 
 		logger::loglevel level;
@@ -42,7 +44,9 @@ int main(int argc, char** argv) {
 			return EXIT_FAILURE;
 		}
 
-
+		srv::server server(port, max_clients, description, srv::gamemode(gamemode.c_str()));
+		while (true)
+			server.process();
 	}
 	catch (const std::bad_optional_access&) {
 		logger::get().error() << "Config: A value is missing or has an invalid type" << std::endl;

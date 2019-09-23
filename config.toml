@@ -2,4 +2,5 @@
 port = 28785
 max-clients = 128
 description = "srs"
+gamemode = "lua/test.lua"
 loglevel = "debug"

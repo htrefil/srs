@@ -229,9 +229,11 @@ void server::handle_recv(client& cl, cspan<unsigned char> data) {
 				case proto::message::CHANGE_WEAPON: {
 					auto weapon = reader.read<proto::weapon>();
 
-					const player_state_alive* state;
+					player_state_alive* state;
 					if (!cl.info || (state = std::get_if<player_state_alive>(&cl.info->state)) == nullptr || state->editing)
 						break;
+					
+					state->weapon = weapon;
 
 					manager.write_client(&cl, cl, proto::CHANNEL_MESSAGES, proto::message::CHANGE_WEAPON, weapon);
 					break;
