@@ -26,8 +26,6 @@ public:
 	std::ostream& debug();
 
 private:
-	std::ostream& log();
-
 	loglevel level;
 };
 

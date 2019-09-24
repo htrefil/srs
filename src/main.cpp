@@ -12,7 +12,7 @@ static constexpr auto LOGLEVEL_DEBUG = "debug";
 
 int main(int argc, char** argv) {
 	if (argc != 2) {
-		std::cout << "Usage: " << argv[1] << " <config path>" << std::endl;
+		std::cout << "Usage: " << argv[0] << " <config path>" << std::endl;
 		return EXIT_FAILURE;
 	}
 
